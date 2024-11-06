@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['simulation_parameters.py', 'main.py', 'entanglement_entropy_simulation.py', 'compute_entanglement_entropy.py', 'cosmology.py']
+recent_files = ['simulation_parameters.py', 'main.py']
 
 [main]
 version = 0.2.0

@@ -1,0 +1,15 @@
+Simulation Settings:
+n_min = 0.000e+00
+N = 1.500e+01
+l_max = 2.000e+02
+cut_off = 1.000e+00
+mu = 0.000e+00
+t_min = 0.000e+00
+t_max = 9.900e-01
+N_t = 1.000e+02
+omega_m0 = 1.000e+00
+omega_r0 = 0.000e+00
+omega_l0 = 0.000e+00
+omega_k0 = 0.000e+00
+cut_off_type = fixed_comoving
+horizon_type = fixed_comoving

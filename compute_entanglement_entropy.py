@@ -155,9 +155,10 @@ def run():
     
     """Initialize the vectors used for containing the final results
     for the entropy as a function of time
-    entanglement_entropy_scaling_t=[[area,EntEntr at times[1]],[area,EntEntr at times[2]]...]"""
+    comving_entanglement_entropy_scaling_t=[[area,EntEntr at times[1]],[area,EntEntr at times[2]]...]"""
     len_n_values=len(par.n_values)
-    entanglement_entropy_scaling_t=[]
+    comving_entanglement_entropy_scaling_t=[]
+    physical_entanglement_entropy_scaling_t=[]
     
     """Since the initial conditions are on rho_lj, we have to save the values
     for each lj pair. So at each time cycle, we recylce the solution obtained 
@@ -361,9 +362,10 @@ def run():
         """We then associate each entropy scaling with the time at which it has been computed. 
         We also rescale n, which in this case represent the discretized radial varialbe."""
         comoving_area=(par.cut_off*np.array(par.n_values))**2#*4*np.pi
-        # physical_area=cosm.scale_factor_t(par.times[i])**2*comoving_area#The physical area is just multiplied by the scale facotr squared.
+        physical_area=cosm.scale_factor_t(par.times[i])**2*comoving_area#The physical area is just multiplied by the scale facotr squared.
         
-        entanglement_entropy_scaling_t.append([comoving_area,entropy_n])
+        physical_entanglement_entropy_scaling_t.append([physical_area,entropy_n])
+        comving_entanglement_entropy_scaling_t.append([comoving_area,entropy_n])
         
     if par.debug_level>=3:
         pl.plot(rho_for_plot_t,legend=rho_for_plot_legend,title="Some more solutions to the Ermakov equation",
@@ -376,6 +378,6 @@ def run():
                 xscale="log",
                 yscale="log")
         
-    return (entanglement_entropy_scaling_t,max_errors)
+    return (comving_entanglement_entropy_scaling_t,physical_entanglement_entropy_scaling_t,max_errors)
 
 

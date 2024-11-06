@@ -7,6 +7,7 @@ Created on Wed Dec 13 11:51:39 2023
 import time as timee
 from datetime import datetime
 import numpy as np
+import cosmology as cosm
 now = datetime.now()
 # Format the date and time in Italian convention: day/month/year hour:minute:second
 it_datetime = now.strftime("%d_%m_%Y_%H_%M_%S_")
@@ -39,8 +40,8 @@ legend=[]
 for i in range(1,len(par.times),4):
     legend.append("t="+str(par.times[i])+r" $Gy$")
 
-save_with_name="ee_scaling_t_"+par.cosmology+"_"+it_datetime
-pl.plot(simulation.entanglement_entropy_scaling_t,
+save_with_name=par.save_plot_dir+"/comoving_ee_scaling_t_"+par.cosmology+"_"+it_datetime
+pl.plot(simulation.comoving_entanglement_entropy_scaling_t,
         title="Entanglement entropy scaling at various times",
         xlabel="Area",
         ylabel="Entropy",
@@ -48,30 +49,42 @@ pl.plot(simulation.entanglement_entropy_scaling_t,
         save=par.save_plots, name= save_with_name)
 
 """Plot the fitted angular coefficients and their % errors."""
-save_with_name="ee_slopes_t_"+par.cosmology+"_"+it_datetime
-pl.plot([par.times[1:],simulation.angular_coefficients],
+save_with_name=par.save_plot_dir+"/comoving_ee_slopes_t_"+par.cosmology+"_"+it_datetime
+pl.plot([par.times[1:],simulation.comoving_angular_coefficients],
         title="Entanglement entropy slope at various times.",
         xlabel="$t$ [Gy]",
         ylabel="Slope",
         legend=[None],dotted=True,connected_dots=True,
         save=par.save_plots,name=save_with_name)
 
-save_with_name="ee_slopes_t_0_"+par.cosmology+"_"+it_datetime
-pl.plot([par.times[1:],simulation.angular_coefficients],
+save_with_name=par.save_plot_dir+"/comoving_ee_slopes_t_schwtime_"+par.cosmology+"_"+it_datetime
+pl.plot([par.times[1:],simulation.comoving_angular_coefficients],
         title="Entanglement entropy slope at various times.",
         xlabel="$t$ [Gy]",
         ylabel="Slope",
         x_ticks=[0,par.t_rs,par.collapse_time],
+        yscale="log",
         x_ticklabels=[str(label) for label in list(np.round(np.array([0,par.t_rs,par.collapse_time]),3))],
         legend=[None],dotted=True,connected_dots=True,
         save=par.save_plots,name=save_with_name)
 
-save_with_name="ee_slopes_t_errors"+par.cosmology+"_"+it_datetime
-pl.plot([par.times[1:],simulation.angular_coefficients_errors],
+save_with_name=par.save_plot_dir+"/comoving_ee_slopes_t_errors"+par.cosmology+"_"+it_datetime
+pl.plot([par.times[1:],simulation.comoving_angular_coefficients_errors],
         title="Percentage errors on the angular coefficients",
         xlabel="Time",
         ylabel="$\%$ error", legend=[None],
         dotted=True,connected_dots=True,
+        save=par.save_plots,name=save_with_name)
+
+save_with_name=par.save_plot_dir+"/physical_ee_slopes_t_"+par.cosmology+"_"+it_datetime
+pl.plot([par.times[1:],simulation.physical_angular_coefficients],
+        title="Entanglement entropy slope at various.",
+        xlabel="$t$ [Gy]",
+        ylabel="Slope",
+        yscale="log",
+        x_ticks=[0,par.t_rs,par.collapse_time],
+        x_ticklabels=[str(label) for label in list(np.round(np.array([0,par.t_rs,par.collapse_time]),3))],
+        legend=[None],dotted=True,connected_dots=True,
         save=par.save_plots,name=save_with_name)
 print(f"The time at which the radius becomes equal to the Schwarzshild radius is \n t = {par.t_rs}")
 
