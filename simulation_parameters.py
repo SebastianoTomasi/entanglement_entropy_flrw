@@ -6,7 +6,7 @@ Created on Wed Dec 13 10:11:06 2023
 """
 
 import numpy as np
-import sys
+import sys,os
 sys.path.append('C:/Users/sebas/Documents/GitHub/custom_libraries')
 import numerical_methods as nm
 import constants as const
@@ -19,9 +19,11 @@ plot_saved_data=False#True,False
 """Output saving options."""
 save_data=True#True,False
 save_data_dir="./data"
+os.makedirs(save_data_dir, exist_ok=True)
 
 save_plots=True#True,False
 save_plot_dir="./plots"
+os.makedirs(save_plot_dir, exist_ok=True)
 
 #%% Physical constants
 G=1#const.G
@@ -88,8 +90,8 @@ For example if we set n_values= np.arange(n_min, n_max+ 1) we have maximum infor
 on the entropy scaling. This can be used to check if the system satisfy an area law.
 But we can diminish the number of n_values for sake of speed. For exampl we may consider
 only half of the points , n_values=np.arange(n_min, n_max + 1,2) or just two points n_values=[N//4,N//2]"""
-# n_values=[n_min,int(1/5*N),int(2/5*N),int(3/5*N),int(4/5*N)]
-n_values=[n_min,int(4/5*N)]
+n_values=[n_min,int(1/5*N),int(2/5*N),int(3/5*N),int(4/5*N)]
+# n_values=[n_min,int(4/5*N)]
 
 # n_values=np.arange(0,int(3/4*N),3)
 
