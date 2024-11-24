@@ -205,13 +205,14 @@ def run():
             This feature is not implemented yet."""
             
             coupling_matrix_l=cm.generate_ticm(l)
+            # print(coupling_matrix_l)
             
             """Now we have to compute the eigenvalues, gamma_l2 and the
             orthonormal basis change that diagonalizes coupling_matrix_l, which we call U as in the paper,
             such that \Gamma^2=U*C*U^T. We will call gamma_lj2 the j-th element of gamma_l2."""
             gamma_l2, UT =sp.linalg.eigh(coupling_matrix_l)
             U=np.transpose(UT)
-            
+            # print(gamma_l2)
           
             
             
@@ -236,6 +237,9 @@ def run():
                 """In the first iteration we have to impose the flat space harmonic oscillator initial conditions"""
                 if i==1:
                     rho_t_prec[l][j]=1/np.sqrt(M_t(par.t_ini)*sqrt(omega_lj2(par.t_ini)))
+                    # print("init_cond:",1/np.sqrt(M_t(par.t_ini)*sqrt(omega_lj2(par.t_ini))))
+                    # print("M_t:",M_t(par.t_ini))
+                    # print("omega_lj2:",omega_lj2(par.t_ini))
                     # rho_t_prec[l][j]=1
                     # drho_t_prec[l][j]=0. do not need this since it's already zero.
             
