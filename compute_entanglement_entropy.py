@@ -375,12 +375,24 @@ def run():
         pl.plot(rho_for_plot_t,legend=rho_for_plot_legend,title="Some more solutions to the Ermakov equation",
                 xlabel=r"$t$",ylabel=r"$\rho_{lj}(t)$",
                 xscale="log",
-                yscale="log")
+                yscale="log",
+                save=par.save_plots,name=f"{par.fixed_name_left}more_rho_lj_t{par.fixed_name_right}")
+        pl.plot(rho_for_plot_t,legend=rho_for_plot_legend,title="Some more solutions to the Ermakov equation",
+                xlabel=r"$t$",ylabel=r"$\rho_{lj}(t)$",
+                # xscale="log",
+                # yscale="log",
+                save=par.save_plots,name=f"{par.fixed_name_left}more_linear_rho_lj_t{par.fixed_name_right}")
     if par.debug_level==2:
         pl.plot(rho_for_plot_t,legend=rho_for_plot_legend,title="Some solutions to the Ermakov equation",
                 xlabel=r"$t$",ylabel=r"$\rho_{lj}(t)$",
                 xscale="log",
-                yscale="log")
+                yscale="log",
+                save=par.save_plots,name=f"{par.fixed_name_left}rho_lj_t{par.fixed_name_right}")
+        pl.plot(rho_for_plot_t,legend=rho_for_plot_legend,title="Some more solutions to the Ermakov equation",
+                xlabel=r"$t$",ylabel=r"$\rho_{lj}(t)$",
+                # xscale="log",
+                # yscale="log",
+                save=par.save_plots,name=f"{par.fixed_name_left}linear_rho_lj_t{par.fixed_name_right}")
         
     return (comving_entanglement_entropy_scaling_t,physical_entanglement_entropy_scaling_t,max_errors)
 

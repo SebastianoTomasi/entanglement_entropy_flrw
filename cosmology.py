@@ -59,7 +59,7 @@ if par.cosmology=="eds" or par.cosmology=="lcdm" or par.cosmology=="rad":
     
     if __name__ == "__main__" or par.debug_level>=2:#For debug
         pl.plot(scale_parameter_numerical_t,title="Scale parameter",
-                  xlabel=[r"t [Gy]"],ylabel=[r"a(t)"],legend=["Numerical","EdS"],
+                  xlabel=[r"t "],ylabel=[r"a(t)"],legend=["Numerical","EdS"],
                    func_to_compare=lambda t: (3/2*t*par.hubble_constant)**(2/3),
                   # func_to_compare=lambda t:np.exp(par.hubble_constant*t),#dS
                   )#EDS
@@ -86,7 +86,7 @@ if par.cosmology=="eds" or par.cosmology=="lcdm" or par.cosmology=="rad":
     )
     if __name__ == "__main__" or par.debug_level>=2:#For debug
         pl.plot(scale_parameter_derivative_numerical_t,
-                  ylabel=r"$\dot(a)$",xlabel=r"$t$ [Gy]",title="Scale param. derivative",
+                  ylabel=r"$\dot(a)$",xlabel=r"$t$ ",title="Scale param. derivative",
                    yscale="log",xscale="log",
                    dotted=True, 
                    # xlim=(-0.1,2),ylim=(-0.1,10),
@@ -100,7 +100,7 @@ if par.cosmology=="eds" or par.cosmology=="lcdm" or par.cosmology=="rad":
                                       fill_value="extrapolate", assume_sorted=True,kind="quadratic")
     if __name__ == "__main__" or par.debug_level>=2:#For debug
         pl.plot([hubble_function_numerical_t[0], hubble_function_numerical_t[1]],title="Hubble function",
-                  xlabel=["t [Gy]"],ylabel=["H(t)"],
+                  xlabel=["t "],ylabel=["H(t)"],
                     yscale="log",xscale="log",
                     legend=["Numerical","EdS"],
                    dotted=True, connected_dots=True,
@@ -202,7 +202,7 @@ elif par.cosmology=="snyder":
     time=time-time[-1]
     
     collapse_time=time[0]
-    if __name__=="__main__":
+    if __name__=="__main__" or par.debug_level>=2:
         print("Collapse time = ", collapse_time)
     
     """Invert t(a) to obtain a(t). In more detail we have a(t) s.t a(t0)=1 
@@ -223,8 +223,8 @@ elif par.cosmology=="snyder":
     
     if __name__ == "__main__" or par.debug_level>=2:#For debug
         pl.plot([scale_parameter_numerical_t,analytical_collapse],title="Scale parameter",
-                  xlabel=[r"t [Gy]"],ylabel=[r"a(t)"],legend=["Numerical","Analytical"],
-                  )#EDS
+                  xlabel=[r"t "],ylabel=[r"a(t)"],legend=["Numerical","Analytical"],
+                  save=par.save_plots,name=f"{par.fixed_name_left}scale_parameter{par.fixed_name_right}")#EDS
         
         
     # Get unique time values and their first indices
@@ -261,7 +261,7 @@ elif par.cosmology=="snyder":
     )
     if __name__ == "__main__" or par.debug_level>=2:#For debug
         pl.plot([scale_parameter_derivative_numerical_t[0],-np.array(scale_parameter_derivative_numerical_t[1])],
-                  ylabel=r"$-\dot{a}$",xlabel=r"$t$ [Gy]",title="Negative scale param. derivative",
+                  ylabel=r"$-\dot{a}$",xlabel=r"$t$ ",title="Negative scale param. derivative",
                     yscale="log",
                     xscale="log",
                    dotted=True, 
@@ -275,13 +275,13 @@ elif par.cosmology=="snyder":
                                       fill_value="extrapolate", assume_sorted=True,kind="quadratic")
     if __name__ == "__main__" or par.debug_level>=2:#For debug
         pl.plot([hubble_function_numerical_t[0], -hubble_function_numerical_t[1]],title="Negative Hubble function",
-                  xlabel=["t [Gy]"],ylabel=["-H(t)"],
+                  xlabel=["t "],ylabel=["-H(t)"],
                     yscale="log",xscale="log",
                     legend=["Numerical","EdS"],
                    dotted=True, connected_dots=True,
                     # xlim=(1e-3,10), ylim=(1e-1,1e20),
                     # ylim=(-1e3,1e1),
-                    )
+                    save=par.save_plots,name=f"{par.fixed_name_left}hubble_function{par.fixed_name_right}")
         
     """COMPUTE THE HORIZON ACCORDING TO THE USER CHOICHE"""
     """Ifs on the possible user choiches"""
