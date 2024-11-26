@@ -12,81 +12,51 @@ import numpy as np
 #%%
 """Here we define the entries of the time independent part of the coupling matrix"""
 # %% ZERO SPATIAL CURVATURE 
-# def diagonal_elements(l):
-#     res=[]
-#     start,stop=par.n_min+1,par.n_max+1
-#     for i in range(start,stop):
-#         """Can impose different boundary conditions using the conditionals 
-#         at i==1 and i==par.n_max"""
-#         if i==1:
-#             res.append( 9/4 + l*(l+1) )
-#         # if i==par.n_max:
-#         #     # res.append((par.n_max-0.5)**2/par.n_max**2)
-#         #     print((par.n_max-0.5)**2/par.n_max**2-(2 + (l*(l+1)+0.5)/i**2 +muab_t2))
-#         #     res.append(2 + (l*(l+1)+0.5)/i**2 +muab_t2)
-#         else:
-#             res.append(2 + (l*(l+1)+0.5)/i**2 )
-#     return res
 
-# def top_diagonal_elements():
-#     i=np.arange(par.n_min+2,par.n_max+1)
-#     return -1-1/(4*i*(i+1))
 
-# def down_diagonal_elements():
-#     return top_diagonal_elements()
-# %% NONZERO SPATIAL CURVATURE AND NO +1/2 
 
-# def diagonal_elements(l):
-#     res=[]
-#     start,stop=par.n_min+1,par.n_max+1
-#     kb2=par.k*par.cut_off**2
-#     for i in range(start,stop):
-#         """Can impose different boundary conditions using the conditionals 
-#         at i==1 and i==par.n_max"""
-#         if i==1:
-#             res.append( 1/(1-kb2) + l*(l+1) )
-#         # if i==par.n_max:
-#         #     res.append((i-1)**2/(i**2(1-kb2*(i-1)**2)))
-#         else:
-#             res.append( 1/(1-kb2*i**2) + (i-1)**2/(1-kb2*(i-1)**2)/i**2 + l*(l+1)/i**2 )
-#     return res
-
-# def top_diagonal_elements():
-#     kb2=par.k*par.cut_off**2
-#     i=np.arange(par.n_min+2,par.n_max+1)
-#     return i/(i+1)/(1-kb2*i**2)
-
-# def down_diagonal_elements():
-#     return top_diagonal_elements()
 
 # %% NONZERO SPATIAL CURVATURE with the +1/2 
+if par.cosmology=="snyder":
+    def diagonal_elements(l,start=par.n_min+1,stop=par.n_max+1):
+        res=[]
+        kb2=par.k*par.cut_off**2
+        for i in range(start,stop):
+            """Can impose different boundary conditions using the conditionals 
+            at i==1 and i==par.n_max"""
+            if i==1:
+                res.append( (9 / 4) / (1 - (9 / 4) * kb2) + l * (l + 1) )
+                # res.append(0)
+            # elif i==par.n_max:
+            #     # res.append((9 / 4) / (1 - (9 / 4) * kb2) + l * (l + 1) )
+            #     res.append(0)
+    
+            else:
+                res.append( (1 / i**2) * (
+                    ((i + 0.5)**2) / (1 - kb2 * (i + 0.5)**2) +
+                    ((i - 0.5)**2) / (1 - kb2 * (i - 0.5)**2) +
+                    l * (l + 1)
+                ) )
+        return res
+    
+    def top_diagonal_elements():
+        kb2=par.k*par.cut_off**2
+        i=np.arange(par.n_min+2,par.n_max+1)
+        return ((i + 0.5)**2) / ((1 - kb2 * (i + 0.5)**2) * i * (i + 1))
+else:
+    def diagonal_elements(l, start=par.n_min+1, stop=par.n_max+1):
+        res=[]
+        for i in range(start,stop):
+            if i==1:
+                res.append( 9/4 + l*(l+1) )
+            else:
+                res.append(2 + (l*(l+1)+0.5)/i**2 )
+        return res
 
-def diagonal_elements(l):
-    res=[]
-    start,stop=par.n_min+1,par.n_max+1
-    kb2=par.k*par.cut_off**2
-    for i in range(start,stop):
-        """Can impose different boundary conditions using the conditionals 
-        at i==1 and i==par.n_max"""
-        if i==1:
-            res.append( (9 / 4) / (1 - (9 / 4) * kb2) + l * (l + 1) )
-            # res.append(0)
-        # elif i==par.n_max:
-        #     # res.append((9 / 4) / (1 - (9 / 4) * kb2) + l * (l + 1) )
-        #     res.append(0)
+    def top_diagonal_elements():
+        i=np.arange(par.n_min+2,par.n_max+1)
+        return -1-1/(4*i*(i+1))
 
-        else:
-            res.append( (1 / i**2) * (
-                ((i + 0.5)**2) / (1 - kb2 * (i + 0.5)**2) +
-                ((i - 0.5)**2) / (1 - kb2 * (i - 0.5)**2) +
-                l * (l + 1)
-            ) )
-    return res
-
-def top_diagonal_elements():
-    kb2=par.k*par.cut_off**2
-    i=np.arange(par.n_min+2,par.n_max+1)
-    return ((i + 0.5)**2) / ((1 - kb2 * (i + 0.5)**2) * i * (i + 1))
 
 def down_diagonal_elements():
     return top_diagonal_elements()

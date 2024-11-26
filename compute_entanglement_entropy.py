@@ -396,4 +396,69 @@ def run():
         
     return (comving_entanglement_entropy_scaling_t,physical_entanglement_entropy_scaling_t,max_errors)
 
+# %% ADIABATIC APPROXIMATION
+def compute_xi(eigenvalues):
+    result=[]
+    for Lambda in eigenvalues:
+        result.append(Lambda/(1+sqrt(1-Lambda**2)))
+    return np.array(result)
+    # return eigenvalues/(1+np.sqrt(1-eigenvalues**2))
+    
+def run_apporx():
 
+    """Initialize the vectors used for containing the final results
+    for the entropy as a function of time
+    comving_entanglement_entropy_scaling_t=[[area,EntEntr at times[1]],[area,EntEntr at times[2]]...]"""
+    len_n_values=len(par.n_values)
+    entanglement_entropy_scaling_t=[]
+    
+    for i in range(1,len(par.times)):
+        t=par.times[i]
+        entropy_nl=np.zeros(len_n_values)
+        entropy_n=np.zeros(len_n_values)
+        errors_n=np.zeros(len_n_values)
+        for l in range(0,par.l_max+1):#Main cycle for on the l values
+            # print(f"\n l={l}" if l==0 else f"l={l}" )
+            """Define the values for the diagonal and its adjacent slots"""
+            """Create the coupling matrix"""
+            
+            muab2=(par.mu*cosm.scale_factor_t(t)*cosm.cut_off_t(t))**2
+            coupling_matrix = cm.generate_ticm(l)+np.diag([muab2] * n)
+            
+            """Compute the square root of the coupling matrix."""    
+            omega=sp.linalg.sqrtm(coupling_matrix)
+            
+            for k,n in enumerate(par.n_values):
+                if n==par.n_min or n==par.n_max:
+                    """If  we consider the complete system or no system
+                    the entanglement entropy must be zero."""
+                    pass
+                else:
+                    """Define the blocks that compose omega"""
+                    A,B,B_T,C=cm.slice_matrix(omega,n)   
+                    beta=0.5*np.dot(np.dot(B_T,sp.linalg.inv(A)),B)#compute the beta matrix
+                    gamma= C-beta#compute the gamma matrix
+                    gammatotheminus1_beta=np.dot(sp.linalg.inv(gamma),beta)
+                    gammatotheminus1_beta_eigenvalues,_=sp.linalg.eig(gammatotheminus1_beta)
+                    
+                    xi=compute_xi(np.real(gammatotheminus1_beta_eigenvalues))#There is a minuscule imaginary part due to numerical errors which we get rid of
+    
+                    entanglement_entropy=compute_entanglement_entropy(xi)
+                    
+                    precedent_entropy=entropy_nl[n]#Save the precedent value 
+                    actual_entropy=precedent_entropy+(2*l+1)*entanglement_entropy
+                    
+                    entropy_nl[k]=entanglement_entropy
+         
+                    errors_n[n]=2*(precedent_entropy-actual_entropy)/(precedent_entropy+actual_entropy)#Array containg the percentage difference between two l iterations.
+                    
+            
+            max_error=max(abs(errors_n))
+            if max_error<= par.tolerance_l_sum:#Brake the cycle if the error is smaller then the tolerance
+                break
+        
+        n_values=np.array([n for n in range(par.n_min,par.n_max+1)])
+        area=(cosm.cut_off_t(par.times[i])*(n_values+0.5))**2
+        entanglement_entropy_scaling_t.append([area,entropies_nl])
+        
+    return entanglement_entropy_scaling_t
