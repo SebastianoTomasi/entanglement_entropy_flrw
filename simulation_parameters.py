@@ -74,7 +74,7 @@ t_ini = 0  # Time at which the initial conditions on the ground state are impose
 t_min = t_ini  # First time at which the entropy scaling is computed
 # t_max = t_min + collapse_time * (1 - 1e-2)  # Last time at which the entropy scaling is computed
 t_max = t_min + t_rs
-N_t = 20  # Number of time points to consider
+N_t = 1  # Number of time points to consider
 logspaced_times = False  # Use log-spaced time points
 
 #%% Spatial Settings
