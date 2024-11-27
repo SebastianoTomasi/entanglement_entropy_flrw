@@ -6,7 +6,6 @@ Created on Wed Dec 13 11:51:39 2023
 """
 import time as timee
 import scipy as sp
-import os
 from datetime import datetime
 import numpy as np
 import cosmology as cosm
@@ -38,68 +37,64 @@ else:
     simulation.load()
 
 #%%
+entropy_scale=1
 
-fixed_name_left=f"{par.save_plot_dir}/{par.cosmology}/"
-fixed_name_right=f"{it_datetime}"
-os.makedirs(fixed_name_left, exist_ok=True)
-
-"""Plot the entanglement entropy"""
-par.save_plots=True
-legend=[]
-for i in range(1,len(par.times),4):
-    legend.append("t="+str(par.times[i])+r" $Gy$")
-    
-
-# save_with_name=f"{fixed_name_left}comoving_ee_scaling_t_{fixed_name_right}"
-# pl.plot(simulation.comoving_entanglement_entropy_scaling_t,
-#         title="Entanglement entropy scaling at various times",
-#         xlabel="Area",
-#         ylabel="Entropy",
-#         legend=legend,dotted=True,connected_dots=True,
-#         save=par.save_plots, name= save_with_name)
+"""Plot the entanglement entropy scaling for some selectd times"""
+selected=[simulation.comoving_entanglement_entropy_scaling_t[i] for i in [0, len(par.times)//2, len(par.times)-2]]
+legend = [f"t={par.times[i]}" for i in [0, len(par.times)//2, len(par.times)-1]]
+save_with_name=f"{par.fixed_name_left}comoving_ee_scaling_t_{par.fixed_name_right}"
+pl.plot(selected,
+        title="Entanglement entropy scaling at various times",
+        xlabel="Area",
+        ylabel="Entropy",
+        legend=legend,dotted=True,connected_dots=True,
+        save=par.save_plots, name= save_with_name)
 
 """Plot the fitted angular coefficients and their % errors."""
-save_with_name=f"{fixed_name_left}comoving_ee_slopes_t_{fixed_name_right}"
+save_with_name=f"{par.fixed_name_left}comoving_ee_slopes_t_{par.fixed_name_right}"
 pl.plot([par.times[1:],simulation.comoving_angular_coefficients],
-        title="Entanglement entropy slope at various times.",
-        xlabel="$t$ [Gy]",
+        title="Entanglement entropy best fit slope at various times.",
+        xlabel="$t$ ",
         ylabel="Slope",
         legend=[None],dotted=True,connected_dots=True,
         save=par.save_plots,name=save_with_name)
 
-save_with_name=f"{fixed_name_left}comoving_ee_slopes_t_schwtime_{fixed_name_right}"
+save_with_name=f"{par.fixed_name_left}comoving_ee_slopes_t_tiks{par.fixed_name_right}"
 pl.plot([par.times[1:],simulation.comoving_angular_coefficients],
-        title="Entanglement entropy slope at various times.",
-        xlabel="$t$ [Gy]",
-        ylabel="Slope",
-        x_ticks=[0,par.t_rs,par.collapse_time],
+        title="Entanglement entropy comoving slope at various times.",
+        xlabel="$t$ ",
+        ylabel="Comoving Slope",
+        x_ticks=[par.t_min,par.t_rs,par.collapse_time],
+        x_ticklabels = [
+                        r"$t_{\text{min}}=$" + str(f"{par.t_min:.2g}"),
+                        r"$t_{\text{rs}}=$" + str(f"{par.t_rs:.2g}"),
+                        r"$t_{\text{c}}=$" + str(f"{par.collapse_time:.2g}")
+                        ],
         yscale="log",
-        x_ticklabels=[str(label) for label in list(np.round(np.array([0,par.t_rs,par.collapse_time]),3))],
         legend=[None],dotted=True,connected_dots=True,
         save=par.save_plots,name=save_with_name)
 
-save_with_name=f"{fixed_name_left}comoving_ee_slopes_t_errors{fixed_name_right}"
+save_with_name=f"{par.fixed_name_left}comoving_ee_slopes_t_errors{par.fixed_name_right}"
 pl.plot([par.times[1:],simulation.comoving_angular_coefficients_errors],
-        title="Percentage errors on the angular coefficients",
-        xlabel="Time",
+        title="Fit errors on the angular coefficients",
+        xlabel="t",
         ylabel="$\%$ error", legend=[None],
         dotted=True,connected_dots=True,
         save=par.save_plots,name=save_with_name)
-
-save_with_name=f"{fixed_name_left}physical_ee_slopes_t_{fixed_name_right}"
-pl.plot([par.times[1:],simulation.physical_angular_coefficients],
+"""Ent"""
+save_with_name=f"{par.fixed_name_left}physical_ee_slopes_t_{par.fixed_name_right}"
+pl.plot([par.times[1:],cosm.scale_factor_t(par.times[1:])**(-2)*simulation.comoving_angular_coefficients],
         title="Entanglement entropy physical slope at various.",
-        xlabel="$t$ [Gy]",
+        xlabel="$t$ ",
         ylabel="Physical Slope",
         yscale="log",
         x_ticks=[0,par.t_rs,par.collapse_time],
         x_ticklabels=[str(label) for label in list(np.round(np.array([0,par.t_rs,par.collapse_time]),3))],
         legend=[None],dotted=True,connected_dots=True,
         save=par.save_plots,name=save_with_name)
-print(f"The time at which the radius becomes equal to the Schwarzshild radius is \n t = {par.t_rs}")
+
 
 #%% PLOT THE ENTANGLEMENT ENTROPY AS A FUNCTION OF SCHWARZSCHILD TIME INSTEAD OF COMOVING
-
 
 def dTdt(t):
     """Derivative of the schwarzschild time respect the comoving time."""
@@ -114,19 +109,6 @@ def dTdt(t):
     result = numerator / denominator
 
     return result
-
-
-
-t0=par.collapse_time
-a_s=par.r_s/par.r_b
-
-print(par.r_b)
-print(par.r_s)
-print(t0)
-print(a_s)
-print(par.k)
-
-print(par.t_rs)
 
 schwarzschild_time_numerical_t=nm.integrate(f=dTdt, a=0, b=par.t_rs,
                        atol=par.friedmann_atol,rtol=par.friedmann_rtol,max_step=par.friedmann_max_stepsize)
@@ -144,68 +126,27 @@ pl.plot([par.times[1:how_many_schw_times+1],tbars],
         title="Schwarzschild time as a function of comoving time",
         dotted=True)
 
-save_with_name=par.save_plot_dir+"/comoving_ee_slopes_tbar_{fixed_name_right}"
-
+save_with_name=f"{par.fixed_name_left}comoving_ee_slopes_T{par.fixed_name_right}"
 pl.plot([tbars,simulation.comoving_angular_coefficients[:how_many_schw_times]],
         title="Comoving Entanglement entropy slope at various Schwarzschild times.",
-        xlabel="$T$ [Gy]",
-        ylabel="Slope",
+        xlabel="$T$ ",
+        ylabel="Comoving Slope",
         # x_ticks=[0,par.t_rs,par.collapse_time],
         yscale="log",
         x_ticklabels=[str(label) for label in list(np.round(np.array([0,par.t_rs,par.collapse_time]),3))],
         legend=[None],dotted=True,connected_dots=True,
         save=par.save_plots,name=save_with_name)
 
-save_with_name=par.save_plot_dir+f"/comoving_ee_slopes_tbar_{fixed_name_right}"
 
-pl.plot([tbars,simulation.comoving_angular_coefficients[:how_many_schw_times]],
-        title="Comoving Entanglement entropy slope at various Schwarzschild times.",
-        xlabel="$T$ [Gy]",
-        ylabel="Slope",
-        # x_ticks=[0,par.t_rs,par.collapse_time],
-        # yscale="log",
-        x_ticklabels=[str(label) for label in list(np.round(np.array([0,par.t_rs,par.collapse_time]),3))],
-        legend=[None],dotted=True,connected_dots=True,
-        save=par.save_plots,name=save_with_name)
-
-
-save_with_name=par.save_plot_dir+f"/physical_ee_slopes_tbar_{fixed_name_right}"
-
-pl.plot([tbars,simulation.physical_angular_coefficients[:how_many_schw_times]],
+save_with_name=f"{par.fixed_name_left}/physical_ee_slopes_T{par.fixed_name_right}"
+pl.plot([tbars,simulation.comoving_angular_coefficients[:how_many_schw_times]*cosm.scale_factor_t(par.times[1:how_many_schw_times+1])**(-2)],
         title="Physical entanglement entropy slope at various Schwarzschild times.",
-        xlabel="$T$ [Gy]",
-        ylabel="Slope",
-        # xscale="log",
-        # yscale="log",
+        xlabel="$T$ ",
+        ylabel="Physical Slope",
         x_ticklabels=[str(label) for label in list(np.round(np.array([0,par.t_rs,par.collapse_time]),3))],
         legend=[None],dotted=True,connected_dots=True,
         save=par.save_plots,name=save_with_name)
 
-# factor=cosm.scale_factor_t(par.times[1:how_many_schw_times+1])
-# pl.plot([tbars,simulation.comoving_angular_coefficients[:how_many_schw_times]/factor**2],
-#         title="Physical entanglement entropy slope at various Schwarzschild times.",
-#         xlabel="$T$ [Gy]",
-#         ylabel="Slope",
-#         xscale="log",
-#         # yscale="log",
-#         x_ticklabels=[str(label) for label in list(np.round(np.array([0,par.t_rs,par.collapse_time]),3))],
-#         legend=[None],dotted=True,connected_dots=True,
-#         save=par.save_plots,name=save_with_name)
-
-
-# index = 1
-# # Ensure entanglement_entropy_scaling_t is a NumPy array
-# entanglement_entropy_scaling_t = np.array(simulation.entanglement_entropy_scaling_t)
-
-# # Extract the required values
-# entanglement_entropy_t = [simulation.times, entanglement_entropy_scaling_t[:, 1, index]]
-# save_with_name="ee_t_fix_shell{fixed_name_right}"
-# pl.plot(entanglement_entropy_t,
-#         title=f"Entanglement entropy for n = {par.n_values[index]} shells as a function of time",
-#         xlabel="Time",
-#         ylabel="Entropy", legend=[None],
-#         dotted=True,connected_dots=True,
-#         save=par.save_plots,name=save_with_name)
 
 #%%
 """Save data."""
