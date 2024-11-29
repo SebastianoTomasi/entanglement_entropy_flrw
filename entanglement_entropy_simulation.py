@@ -58,6 +58,7 @@ class EntanglementEntropySimulation:
         self.comoving_entanglement_entropy_scaling_t = None
 
         self.max_errors=None
+        self.rho_for_plot_t=None
         
         self.comoving_best_fits = []
         self.comoving_fitted_slices = []
@@ -81,7 +82,7 @@ class EntanglementEntropySimulation:
             print(f"{key} = {formatted_value}")
         print("")
             
-        self.comoving_entanglement_entropy_scaling_t, self.max_errors =cee.run()
+        self.comoving_entanglement_entropy_scaling_t, self.max_errors, self.sigma_l_t_for_plot =cee.run()
         
     def perform_linear_fit(self,suppress_report=True):
         """Can only run this if the simulation has been run."""
@@ -108,19 +109,21 @@ class EntanglementEntropySimulation:
         self.parameters = aux[0]
         self.times=aux[1][0]
         self.comoving_entanglement_entropy_scaling_t=aux[1][1]
+        self.rho_for_plot_t=aux[2]
         
         aux = io.load_data(f"{par.fixed_name_left}comoving_entanglement_entropy_scaling_t_fit_params_"+par.cosmology)
-        self.comoving_angular_coefficients = aux[1][1]
-        self.comoving_angular_coefficients_errors = aux[1][2]
-        self.did_fit=True
-        # except:
-        #     print("No fit found.")
+        try:
+            self.comoving_angular_coefficients = aux[1][1]
+            self.comoving_angular_coefficients_errors = aux[1][2]
+            self.did_fit=True
+        except:
+            print("No fit found.")
     
     
     
     def save_data(self):
         """Save the simulation data and optionally plot settings to files."""
-        io.save_data(data=[self.times,self.comoving_entanglement_entropy_scaling_t], 
+        io.save_data(data=[self.times,self.comoving_entanglement_entropy_scaling_t,self.rho_for_plot_t], 
                      path=f"{par.fixed_name_left}comoving_entanglement_entropy_scaling_t_"+par.cosmology,
                      header=self.parameters)
         if self.did_fit:

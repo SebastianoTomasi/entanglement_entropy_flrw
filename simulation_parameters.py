@@ -33,7 +33,7 @@ hbar = 1  # const.hbar
 
 #%% Cosmology Setup
 cosmologies = ["flat", "eds", "curved eds", "lcdm", "rad", "ds", "snyder"]
-cosmology = "snyder"
+cosmology = "eds"
 
 """We leave the possibility of defining a custom equation of state for dark energy. 
 Here you can write your own. Default is the cosmological constant."""
@@ -66,11 +66,11 @@ t_rs = (1 / (2 * c * np.sqrt(k))) * (
 
 #%% Time Settings
 """Times at which we compute the entanglement entropy"""
-t_ini = 0  # Time at which the initial conditions on the ground state are imposed.
+t_ini = 1e-2  # Time at which the initial conditions on the ground state are imposed.
 t_min = t_ini  # First time at which the entropy scaling is computed
 t_max = t_min + collapse_time * (1 - 1e-2)  # Last time at which the entropy scaling is computed
-# t_max = t_min + t_rs
-N_t = 3  # Number of time points to consider
+# t_max = t_min + t_rs/3
+N_t = 100  # Number of time points to consider
 logspaced_times = False  # Use log-spaced time points
 
 #%% Spatial Settings
@@ -82,7 +82,7 @@ n_min = 0  # First considered shell is at n_min.
 # H0_c = 20  # Comoving size of the horizon, it fixes the number of considered spherical shells
 # N = int(H0_c / cut_off)  # Number of considered spherical shells
 
-N = 60  # Number of considered spherical shells
+N = 15  # Number of considered spherical shells
 cut_off = 1e-2  # Value of the comoving cut off.
 if cosmology == "snyder":
     H0_c = r_b  # Comoving size of the horizon, fixed by the initial radius of the star
@@ -98,15 +98,15 @@ on the entropy scaling. This can be used to check if the system satisfies an are
 But we can diminish the number of n_values for sake of speed. For example, we may consider
 only half of the points, n_values = np.arange(n_min, n_max + 1, 2), or just two points n_values = [N // 4, N // 2]."""
 # n_values = [n_min, int(1/5 * N), int(2/5 * N), int(3/5 * N), int(4/5 * N)]
-# n_values = [n_min, int(4/5 * N)]
+n_values = [n_min, int(4/5 * N)]
 
-n_values = np.arange(0, 4*N//5, 20)
+# n_values = np.arange(0, 4*N//5, 1)
 
 # Percentage of data excluded from the linear fit to avoid edge effects.
 skip_first_percent = 0
 skip_last_percent = 0
 
-l_max = 600  # l_max is the maximum l in the spherical harmonic expansion of the field.
+l_max = 200  # l_max is the maximum l in the spherical harmonic expansion of the field.
 
 """mu is the mass of the field."""
 # mu = 1 / m_pl_GeV  # In Planck masses
@@ -236,7 +236,7 @@ display_parameter_names = {  # To display the parameters in the plots
     "N_t": r"$N_t$"
 }
 
-fixed_name_left=f"{save_plot_dir}/{cosmology}/area_law_holds/"
+fixed_name_left=f"{save_plot_dir}/{cosmology}/mu={mu}/"
 fixed_name_right=f""
 os.makedirs(fixed_name_left, exist_ok=True)
 

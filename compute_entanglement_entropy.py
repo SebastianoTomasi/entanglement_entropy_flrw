@@ -16,6 +16,11 @@ import sys
 sys.path.append('C:/Users/sebas/Documents/GitHub/custom_libraries')
 import plotting_function as pl
 
+"""
+Todos:
+    -The code could be made quite a lot faster by saving the results between 
+    an iteration on an n_value and the other
+"""
 
 
 #%%
@@ -78,7 +83,7 @@ def solve_ermakov_like(t_min, t_max, rho_t_min, drho_t_min, omega_lj2, full_solu
 
     Returns:
         If full_solution is False: (rho_t_max, drho_t_max): solution and its derivative, computed at the ending point of the integration.
-        If full_solution is True (default): [t, rho_t]: full solution from t_min to t_max.
+        If full_solution is True (default): [t, rho_t,drho_t]: full solution from t_min to t_max.
     """
 
     init_cond = [rho_t_min, drho_t_min]  # Initial conditions for the system, passed to scipy solver.
@@ -92,38 +97,17 @@ def solve_ermakov_like(t_min, t_max, rho_t_min, drho_t_min, omega_lj2, full_solu
     
     # If full_solution is True, return the full solution
     if full_solution:
+        drho_t = rk4_result.y[1]
         rho_t = rk4_result.y[0]
         t = rk4_result.t
-        return [t, rho_t]
+        return [t, rho_t,drho_t]
     
     # Otherwise, return the values at t_max
     rho_t_max = rk4_result.y[0][-1]
     drho_t_max = rk4_result.y[1][-1]
     return [rho_t_max, drho_t_max]
 
-def approx_rho_eds(t,C1,C2, gamma_lj):
-    """
-    Computes the approximated expression for rho_lj(t) for the frequency plj->0.
-    
 
-    Parameters:
-    t (float): Time variable.
-    C1 (float): Constant C1.
-    c (float): Constant c.
-    t0 (float): Constant t0.
-    Gamma_lj (float): Constant Gamma_lj.
-
-    Returns:
-    float: The computed rho value.
-    """
-
-    plj = 27 * (par.c ** 3) * (cosm.unverse_age ** 2) * (gamma_lj ** 1.5)
-
-    
-    # Calculate rho
-    rho = t**(1/3)*(-C1+9*(1+C2)*plj**(4/3)*t)
-    
-    return rho
 
 #%%
 
@@ -158,7 +142,6 @@ def run():
     comving_entanglement_entropy_scaling_t=[[area,EntEntr at times[1]],[area,EntEntr at times[2]]...]"""
     len_n_values=len(par.n_values)
     comving_entanglement_entropy_scaling_t=[]
-    physical_entanglement_entropy_scaling_t=[]
     
     """Since the initial conditions are on rho_lj, we have to save the values
     for each lj pair. So at each time cycle, we recylce the solution obtained 
@@ -170,7 +153,7 @@ def run():
     drho_t_prec=np.zeros((par.l_max+1,par.N ), dtype=float)
     
     if par.debug_level>=3:
-        rho_for_plot_t,rho_for_plot_legend=[],[]
+        sigma_l_t_for_plot,sigma_l_t_for_plot_legend=[],[]
         
     for i in range(1,len(par.times)):#Starts from one because of the definition of times.
         """Initialize the vectors used for containing the partial results for the 
@@ -253,26 +236,27 @@ def run():
                 """For checking the results, we plot some of the solutions of the Ermakov-like equation.
                 We solve the full equation from par.t_ini to max(par.times) with standard flat spacetime
                 harmonic oscillator initial condtions."""
-                if par.debug_level>=4:
+                # if par.debug_level>=4:
+                #     if i==1:
+                #         if l==0 or l==par.l_max//2 or l==par.l_max:
+                #             if j==0 or j==par.N//2 or j==par.N-1:
+                #                 sigma_l_t_for_plot.append(solve_ermakov_like(t_min=par.t_ini,t_max=max(par.times),
+                #                                                           rho_t_min=1/np.sqrt(M_t(par.t_ini)*sqrt(omega_lj2(par.t_ini)))
+                #                                                           ,drho_t_min=0.,
+                #                                                           omega_lj2=omega_lj2,
+                #                                                           full_solution=True))
+                #                 sigma_l_t_for_plot_legend.append(f"l={l}, j={j}")
+                if par.debug_level>=3:
                     if i==1:
                         if l==0 or l==par.l_max//2 or l==par.l_max:
                             if j==0 or j==par.N//2 or j==par.N-1:
-                                rho_for_plot_t.append(solve_ermakov_like(t_min=par.t_ini,t_max=max(par.times),
+                                t_plot,rho_lj_t_plot,drho_lj_t_plot=solve_ermakov_like(t_min=par.t_ini,t_max=max(par.times),
                                                                           rho_t_min=1/np.sqrt(M_t(par.t_ini)*sqrt(omega_lj2(par.t_ini)))
                                                                           ,drho_t_min=0.,
                                                                           omega_lj2=omega_lj2,
-                                                                          full_solution=True))
-                                rho_for_plot_legend.append(f"l={l}, j={j}")
-                elif par.debug_level==3:
-                    if i==1:
-                        if l==0 or l==par.l_max//2:
-                            if j==0 or j==par.N//2:
-                                rho_for_plot_t.append(solve_ermakov_like(t_min=par.t_ini,t_max=max(par.times),
-                                                                          rho_t_min=1/np.sqrt(M_t(par.t_ini)*sqrt(omega_lj2(par.t_ini)))
-                                                                          ,drho_t_min=0.,
-                                                                          omega_lj2=omega_lj2,
-                                                                          full_solution=True))
-                                rho_for_plot_legend.append(f"l={l}, j={j}")                            
+                                                                          full_solution=True)
+                                sigma_l_t_for_plot.append([t_plot,1/par.hbar*( 1/rho_lj_t_plot**2-1j*M_t(t_plot)*drho_lj_t_plot/(rho_lj_t_plot) )] )
+                                sigma_l_t_for_plot_legend.append(f"l={l}, j={j}")                            
                                     
 
                 """Save the values to reuse tham in the next cylce on i."""
@@ -365,20 +349,211 @@ def run():
             
         """We then associate each entropy scaling with the time at which it has been computed. 
         We also rescale n, which in this case represent the discretized radial varialbe."""
-        comoving_area=(par.cut_off*np.array(par.n_values))**2#*4*np.pi
-        comving_entanglement_entropy_scaling_t.append([comoving_area,entropy_n])
+        comoving_number_area=4*np.pi*np.array(par.n_values)**2#Removed the cut_off
+        comving_entanglement_entropy_scaling_t.append([comoving_number_area,entropy_n])
         
-    if par.debug_level>=3:
-        pl.plot(rho_for_plot_t,legend=rho_for_plot_legend,title="Some more solutions to the Ermakov equation",
-                xlabel=r"$t$",ylabel=r"$\rho_{lj}(t)$",
-                xscale="log",
-                yscale="log")
-    if par.debug_level==2:
-        pl.plot(rho_for_plot_t,legend=rho_for_plot_legend,title="Some solutions to the Ermakov equation",
-                xlabel=r"$t$",ylabel=r"$\rho_{lj}(t)$",
-                xscale="log",
-                yscale="log")
+    return (comving_entanglement_entropy_scaling_t,max_errors,(sigma_l_t_for_plot,sigma_l_t_for_plot_legend))
+
+# %%CHECK IF THE ANAL SOL IS = TO THE NUMERICAL SOL FOR ERMAKOV-LIKE
+
+if __name__=="__main__":
+    
+    gamma_lj=0
+    
+    p_lj = 27 * (par.c ** 3) * (cosm.unverse_age ** 2) * (gamma_lj ** 1.5)
+    
+    def omega_lj2(t,gamma_lj):
+        """Takes in input the cosmological time x and returns omega_lj2, (\omega_{lj}^2 in the paper),
+        which is the frequency appearing in the Ermakov-like equation.
+        It needs to be defined globally gamma_l2 and the cosmologcal functions defined in the 
+        cosmology module.
+        """
+        gamma_lj2=gamma_lj**2
+        return par.c**2/cosm.scale_factor_t(t)**2*(gamma_lj2+(par.mu*cosm.scale_factor_t(t)*par.cut_off))
+    
+    rho0=1/np.sqrt(M_t(par.t_ini)*sqrt(omega_lj2(par.t_ini,gamma_lj)))
+    
+    # def rho_lj_c1c2_(t, C1, C2):
+    #     import math
+    #     # Compute θ = ∛(p_lj * t)
+    #     theta = (p_lj * t)**(1/3)
+    #     sqrt_t = t**(1/3)    
         
-    return (comving_entanglement_entropy_scaling_t,max_errors)
+    #     # Compute trigonometric functions
+    #     cos_theta = math.cos(theta)
+    #     sin_theta = math.sin(theta)
+    
+    #     # Numerator N = [cos(θ) + θ * sin(θ)] * c
+    #     N = (cos_theta + theta * sin_theta) * par.c
+    
+    #     # Denominator D = sqrt(C1 * a^3)
+    #     D = math.sqrt(C1 * (t/cosm.unverse_age) ** 2)
+    
+    #     # Numerator of F
+    #     num_F = 3 * (p_lj * cos_theta * sqrt_t - p_lj ** (2./3.) * sin_theta)
+    
+    #     # Denominator of F
+    #     den_F = p_lj ** 2 * sin_theta * sqrt_t + p_lj ** (5./3.) * cos_theta
+    
+    #     # Compute F
+    #     F = num_F / den_F
+    
+    #     # Inner term inside the square root
+    #     inner = C2 + C1 * (-F)
+    
+    #     # Compute the square root term
+    #     sqrt_term = math.sqrt(par.c ** 4 + inner ** 2)
+    
+    #     # Final result
+    #     result = (N / D) * sqrt_term
+    
+    #     return result
+    
+    def rho_lj_c1c2_(t,C1,C2):
+        """
+        Computes the approximated expression for rho_lj(t) for the frequency plj->0.
+        
+
+        Parameters:
+        t (float): Time variable.
+        C1 (float): Constant C1.
+        c (float): Constant c.
+        t0 (float): Constant t0.
+        Gamma_lj (float): Constant Gamma_lj.
+
+        Returns:
+        float: The computed rho value.
+        """
+
+        plj = 27 * (par.c ** 3) * (cosm.unverse_age ** 2) * (gamma_lj ** 1.5)
+
+        
+        # Calculate rho
+        rho = t**(1/3)*(-C1+9*(1+C2)*plj**(4/3)*t)
+        
+        return rho
+    
+    rho_lj_c1c2=np.vectorize(rho_lj_c1c2_)
+    
+    xtest=np.linspace(par.t_ini, cosm.unverse_age,200)
+    ytest=rho_lj_c1c2(xtest,1,1)
+    pl.plot([xtest,ytest])
+    
+    
+# %%
+    
+    def ermakov_like_equation_(t,y,omega_lj2,gamma_lj):
+        """Takes in input
+        t: cosmological time
+        y: vector containing the initial conditions on rho and 
+            its derivative y[0]=rho(t_ini), y[1]=rho'(t_ini)
+        omega_lj2: callable, the frequency as a function of time.
+        
+        This function is the first order system which is equivalent
+        to the Ermakov-like equation.
+        """
+        
+        fun=[0]*2
+        fun[0] = y[1]
+        fun[1] = -3*cosm.hubble_function_t(t)*y[1]-omega_lj2(t,gamma_lj)*y[0]+par.c**4/(cosm.scale_factor_t(t)**6*y[0]**3)
+        return np.array(fun)
+    
+    
+    def solve_ermakov_like_(t_min, t_max, rho_t_min, drho_t_min, omega_lj2, gamma_lj, full_solution=True):
+        """
+        Takes in input:
+        t_min: starting point of the integration
+        t_max: ending point of the integration
+        rho_t_min, drho_t_min: initial conditions
+        
+        omega_lj2: callable, the frequency as a function of time.
+        full_solution: if True, return the full solution from t_min to t_max (default is False).
+    
+        Returns:
+            If full_solution is False: (rho_t_max, drho_t_max): solution and its derivative, computed at the ending point of the integration.
+            If full_solution is True (default): [t, rho_t,drho_t]: full solution from t_min to t_max.
+        """
+    
+        init_cond = [rho_t_min, drho_t_min]  # Initial conditions for the system, passed to scipy solver.
+        
+        # Perform the integration
+        rk4_result = sp.integrate.solve_ivp(
+            ermakov_like_equation_, t_span=(t_min, t_max), y0=init_cond, 
+            method="RK45", atol=par.ermak_atol, rtol=par.ermak_rtol, 
+            args=(omega_lj2,gamma_lj)
+        )
+        
+        # If full_solution is True, return the full solution
+        if full_solution:
+            drho_t = rk4_result.y[1]
+            rho_t = rk4_result.y[0]
+            t = rk4_result.t
+            return [t, rho_t,drho_t]
+        
+        # Otherwise, return the values at t_max
+        rho_t_max = rk4_result.y[0][-1]
+        drho_t_max = rk4_result.y[1][-1]
+        return [rho_t_max, drho_t_max]
+
+    t_num,rho_lj_t_num,drho_lj_t_num=solve_ermakov_like_(t_min=par.t_ini,t_max=max(par.times),
+                                              # rho_t_min=rho0,
+                                              # drho_t_min=0.,
+                                              rho_t_min=1,
+                                              drho_t_min=1.,
+                                              omega_lj2=omega_lj2,
+                                              gamma_lj=gamma_lj,
+                                              full_solution=True)
+    
+    sigma_l_t_num=[]
+    sigma_l_t_num.append([t_num,1/par.hbar*( 1/rho_lj_t_num**2-1j*M_t(t_num)*drho_lj_t_num/(rho_lj_t_num) )] )                            
+    
+
+# %%
+    from scipy.optimize import curve_fit
+
+    initial_guess = [1, 1]
+    popt, pcov = curve_fit(rho_lj_c1c2, t_num, rho_lj_t_num, p0=initial_guess)
+    C1_opt, C2_opt = popt
+    
+    print("Optimal parameters:")
+    print("C1 =", C1_opt)
+    print("C2 =", C2_opt)
+    
+    # Compute fitted values
+    rho_lj_fit = rho_lj_c1c2(t_num, C1_opt, C2_opt)
+    
+    # Plot the results
+    pl.plot([[t_num, rho_lj_t_num],[t_num, rho_lj_fit]],
+            legend=["numerical","best_fit"])
+    
+    pl.plot([[t_num, rho_lj_t_num],[xtest, rho_lj_c1c2(xtest,1e2,1e3)]],
+            legend=["numerical","best_fit"],
+            yscale="log"
+            )
+    
+    # Calculate parameter errors
+    perr = np.sqrt(np.diag(pcov))
+    print("Parameter errors:")
+    print("C1 error =", perr[0])
+    print("C2 error =", perr[1])
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
