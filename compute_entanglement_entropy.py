@@ -158,9 +158,11 @@ def run():
         sigma_l_t_for_plot,sigma_l_t_for_plot_legend=[],[]
         
     for i in range(1,len(par.times)):#Starts from one because of the definition of times.
+        t=par.times[i]
         """Initialize the vectors used for containing the partial results for the 
         entanglement entropy, entropy_nl, and the final result, entropy_n. We have
         to define those here since when the time steps forward we have to reset them to zero."""
+        
         entropy_nl=np.zeros(len_n_values)
         entropy_n=np.zeros(len_n_values)
         
@@ -173,7 +175,7 @@ def run():
             if par.debug_level>=1:
                 if l%100==0:
                     if l==0:
-                        print(f"l = {l}, t = {par.times[i]}")
+                        print(f"l = {l}, t = {t}")
                     else:
                         print(f"l = {l}")
                         
@@ -201,15 +203,14 @@ def run():
             frequencies. Fortunately, the higher the l value the smaller is the contribution."""
             
             gamma_l2, UT =sp.linalg.eigh(coupling_matrix_l)
-        
             U=np.transpose(UT)
             
-
-            
+            # if l%100==0:
+            #     print(np.round(U@coupling_matrix_l@UT,4))
             
             """Now we have to solve the Ermakov-like equation for each time independent eigevalue contained gamma_l2.
             We thus perform a cycle on those eigenvalues. The goal is to define the covariance matric \boldsymbol{\Sigma}
-            computed at time par.times[i]=t."""
+            computed at time t=t."""
             
             
             
@@ -228,32 +229,29 @@ def run():
                 """In the first iteration we have to impose the flat space harmonic oscillator initial conditions"""
                 if i==1:
                     rho_t_prec[l][j]=1/np.sqrt(M_t(par.t_ini)*sqrt(omega_lj2(par.t_ini)))
-                    # print("init_cond:",1/np.sqrt(M_t(par.t_ini)*sqrt(omega_lj2(par.t_ini))))
-                    # print("M_t:",M_t(par.t_ini))
-                    # print("omega_lj2:",omega_lj2(par.t_ini))
-                    # rho_t_prec[l][j]=1
-                    # drho_t_prec[l][j]=0. do not need this since it's already zero.
+                    # drho_t_prec[l][j]=0 do not need this since it's already zero.
             
                 """We then solve the Ermakov-like equation. We obtain the solution
-                at time par.times[i]. With this we can construct the time dependent covariance matrix."""
-                rho_lj_t,drho_lj_t=solve_ermakov_like(t_min=par.times[i-1],t_max=par.times[i],
+                at time t. With this we can construct the time dependent covariance matrix."""
+                rho_lj_t,drho_lj_t=solve_ermakov_like(t_min=par.times[i-1],t_max=t,
                                                           rho_t_min=rho_t_prec[l][j],drho_t_min=drho_t_prec[l][j],
                                                           omega_lj2=omega_lj2,
                                                           full_solution=False)
                 
+                if np.sign(rho_lj_t)!=np.sign(rho_t_prec[l][j]):
+                    """From the general integral solution we know that rho cannot change sign,
+                    but if the frequency is very hig, (gamma_lj is hig) then the rk4 method 
+                    fail to keep the sign the same. We can adjust this with those operation.
+                    If the tolerances in the rk4 solver are tight enough, the alghorithm should
+                    never come in here, but if not, this will significantly improve results."""
+                    rho_lj_t*=-1
+                    drho_lj_t*=-1
+                    if par.verbose>=2:
+                        print(f"Sign change in rho detected and corrected! \nOccured with: \ngamma_lj2={gamma_lj2}\nt={t}")
+                
                 """For checking the results, we plot some of the solutions of the Ermakov-like equation.
                 We solve the full equation from par.t_ini to max(par.times) with standard flat spacetime
                 harmonic oscillator initial condtions."""
-                # if par.debug_level>=4:
-                #     if i==1:
-                #         if l==0 or l==par.l_max//2 or l==par.l_max:
-                #             if j==0 or j==par.N//2 or j==par.N-1:
-                #                 sigma_l_t_for_plot.append(solve_ermakov_like(t_min=par.t_ini,t_max=max(par.times),
-                #                                                           rho_t_min=1/np.sqrt(M_t(par.t_ini)*sqrt(omega_lj2(par.t_ini)))
-                #                                                           ,drho_t_min=0.,
-                #                                                           omega_lj2=omega_lj2,
-                #                                                           full_solution=True))
-                #                 sigma_l_t_for_plot_legend.append(f"l={l}, j={j}")
                 if par.debug_level>=3:
                     if i==1:
                         if l==0 or l==par.l_max//2 or l==par.l_max:
@@ -270,8 +268,8 @@ def run():
                 """Save the values to reuse tham in the next cylce on i."""
                 rho_t_prec[l][j],drho_t_prec[l][j]=rho_lj_t,drho_lj_t
                 
-                """We construct the covariance matrix computed at par.times[i]"""
-                diagonal_sigma_l_t.append(1/par.hbar*( 1/rho_lj_t**2-1j*M_t(par.times[i])*drho_lj_t/(rho_lj_t) ) )
+                """We construct the covariance matrix computed at t"""
+                diagonal_sigma_l_t.append(1/par.hbar*( 1/rho_lj_t**2-1j*M_t(t)*drho_lj_t/(rho_lj_t) ) )
             
             
             """After the cycle is compleated, we can construct the actual covariance matrix sigma_l_t and

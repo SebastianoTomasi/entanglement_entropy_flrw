@@ -81,7 +81,7 @@ else:
     t_min = t_ini  # First time at which the entropy scaling is computed
     t_max=1
     
-N_t = 10  # Number of time points to consider
+N_t = 1  # Number of time points to consider
 logspaced_times = False  # Use log-spaced time points
 
 #%% Spatial Settings
@@ -93,7 +93,7 @@ n_min = 0  # First considered shell is at n_min.
 # H0_c = 20  # Comoving size of the horizon, it fixes the number of considered spherical shells
 # N = int(H0_c / cut_off)  # Number of considered spherical shells
 
-N = 15  # Number of considered spherical shells
+N = 5  # Number of considered spherical shells
 cut_off = 1e-2  # Value of the comoving cut off.
 if cosmology == "snyder":
     H0_c = r_b  # Comoving size of the horizon, fixed by the initial radius of the star
