@@ -17,9 +17,9 @@ To select which data to load, set this file as you would to run the simulation."
 plot_saved_data = False  # True or False
 
 """Output saving options."""
-save_data = True  # True or False
+save_data = False  # True or False
 
-save_plots = True  # True or False
+save_plots = False  # True or False
 save_plot_dir = "./plots"
 
 #%% Physical Constants
@@ -33,7 +33,7 @@ hbar = 1  # const.hbar
 
 #%% Cosmology Setup
 cosmologies = ["flat", "eds", "curved eds", "lcdm", "rad", "ds", "snyder"]
-cosmology = "eds"
+cosmology = "snyder"
 
 """We leave the possibility of defining a custom equation of state for dark energy. 
 Here you can write your own. Default is the cosmological constant."""
@@ -66,11 +66,22 @@ t_rs = (1 / (2 * c * np.sqrt(k))) * (
 
 #%% Time Settings
 """Times at which we compute the entanglement entropy"""
-t_ini = 1e-2  # Time at which the initial conditions on the ground state are imposed.
-t_min = t_ini  # First time at which the entropy scaling is computed
-t_max = t_min + collapse_time * (1 - 1e-2)  # Last time at which the entropy scaling is computed
-# t_max = t_min + t_rs/3
-N_t = 100  # Number of time points to consider
+
+if cosmology=="snyder":
+    t_ini = 0  # Time at which the initial conditions on the ground state are imposed.
+    t_min = t_ini  # First time at which the entropy scaling is computed
+    # t_max = t_min + collapse_time * (1 - 1e-2)  # Last time at which the entropy scaling is computed
+    t_max = t_min + t_rs/10
+elif cosmology=="ds":
+    t_ini = 0.1  # Time at which the initial conditions on the ground state are imposed.
+    t_min = t_ini  # First time at which the entropy scaling is computed
+    t_max=20
+else:
+    t_ini = 0.1  # Time at which the initial conditions on the ground state are imposed.
+    t_min = t_ini  # First time at which the entropy scaling is computed
+    t_max=1
+    
+N_t = 10  # Number of time points to consider
 logspaced_times = False  # Use log-spaced time points
 
 #%% Spatial Settings
@@ -99,6 +110,7 @@ But we can diminish the number of n_values for sake of speed. For example, we ma
 only half of the points, n_values = np.arange(n_min, n_max + 1, 2), or just two points n_values = [N // 4, N // 2]."""
 # n_values = [n_min, int(1/5 * N), int(2/5 * N), int(3/5 * N), int(4/5 * N)]
 n_values = [n_min, int(4/5 * N)]
+# n_values=[1]
 
 # n_values = np.arange(0, 4*N//5, 1)
 
@@ -143,10 +155,14 @@ friedmann_max_stepsize = 1e-3
 These have a great impact on the code performance. While the cosmology is solved
 once for all, we have to solve the Ermakov-like equation np.sum(l_max * n_values) * len(times) times.
 If the code runs slow, you can diminish the precision."""
+# ermak_atol = 1e-12
+# ermak_rtol = 1e-10
 # ermak_atol = 1e-10
 # ermak_rtol = 1e-8
-ermak_atol = 1e-6
-ermak_rtol = 1e-4
+ermak_atol = 1e-8
+ermak_rtol = 1e-6
+# ermak_atol = 1e-6
+# ermak_rtol = 1e-4
 
 #%% Debug and Warnings
 """Displays warnings and debug information"""

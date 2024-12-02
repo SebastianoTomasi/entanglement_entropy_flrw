@@ -170,13 +170,12 @@ if par.cosmology=="eds" or par.cosmology=="lcdm" or par.cosmology=="rad":
                   )
         
 elif par.cosmology=="ds":
-    print("Warning: has to be debugged and looked at carefully yet.")
     def scale_factor_tt(t):
         return np.exp(par.hubble_constant*t)
     scale_factor_t=np.vectorize(scale_factor_tt)
     
     def hubble_function_tt(t):
-        return par.par.hubble_constant
+        return par.hubble_constant
     hubble_function_t=np.vectorize(hubble_function_tt)
     
     def H0_c(t):
