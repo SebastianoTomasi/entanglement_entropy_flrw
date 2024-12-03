@@ -157,6 +157,8 @@ pl.plot([tbars,simulation.comoving_angular_coefficients[:how_many_schw_times]*co
         legend=[None],dotted=True,connected_dots=True,
         save=par.save_plots,name=save_with_name)
 
+# %%
+
 
 save_with_name=f"{par.fixed_name_left}sigmaR_lj{par.fixed_name_right}"
 auxilliary=[ [elem[0],np.real(elem[1])] for  elem in simulation.sigma_l_t_for_plot[0]]

@@ -17,9 +17,9 @@ To select which data to load, set this file as you would to run the simulation."
 plot_saved_data = False  # True or False
 
 """Output saving options."""
-save_data = False  # True or False
+save_data = True  # True or False
 
-save_plots = False  # True or False
+save_plots = True  # True or False
 save_plot_dir = "./plots"
 
 #%% Physical Constants
@@ -70,7 +70,7 @@ t_rs = (1 / (2 * c * np.sqrt(k))) * (
 if cosmology=="snyder":
     t_ini = 0  # Time at which the initial conditions on the ground state are imposed.
     t_min = t_ini  # First time at which the entropy scaling is computed
-    t_max = t_min + collapse_time * (1 - 5e-3)  # Last time at which the entropy scaling is computed
+    t_max = t_min + collapse_time * (1 - 1e-2)  # Last time at which the entropy scaling is computed
     # t_max = t_min + t_rs/10
 elif cosmology=="ds":
     t_ini = 0.1  # Time at which the initial conditions on the ground state are imposed.
@@ -81,7 +81,7 @@ else:
     t_min = t_ini  # First time at which the entropy scaling is computed
     t_max=1
     
-N_t = 2  # Number of time points to consider
+N_t =100 # Number of time points to consider
 logspaced_times = False  # Use log-spaced time points
 
 #%% Spatial Settings
@@ -93,7 +93,7 @@ n_min = 0  # First considered shell is at n_min.
 # H0_c = 20  # Comoving size of the horizon, it fixes the number of considered spherical shells
 # N = int(H0_c / cut_off)  # Number of considered spherical shells
 
-N = 15  # Number of considered spherical shells
+N = 30  # Number of considered spherical shells
 cut_off = 1e-2  # Value of the comoving cut off.
 if cosmology == "snyder":
     H0_c = r_b  # Comoving size of the horizon, fixed by the initial radius of the star
@@ -108,9 +108,8 @@ For example, if we set n_values = np.arange(n_min, n_max + 1) we have maximum in
 on the entropy scaling. This can be used to check if the system satisfies an area law.
 But we can diminish the number of n_values for sake of speed. For example, we may consider
 only half of the points, n_values = np.arange(n_min, n_max + 1, 2), or just two points n_values = [N // 4, N // 2]."""
-# n_values = [n_min, int(1/5 * N), int(2/5 * N), int(3/5 * N), int(4/5 * N)]
-n_values = [n_min, int(4/5 * N)]
-# n_values=[1]
+n_values = [n_min, int(1/5 * N), int(2/5 * N), int(3/5 * N), int(4/5 * N)]
+# n_values = [n_min, int(4/5 * N)]
 
 # n_values = np.arange(0, 4*N//5, 1)
 
@@ -118,7 +117,7 @@ n_values = [n_min, int(4/5 * N)]
 skip_first_percent = 0
 skip_last_percent = 0
 
-l_max = 200  # l_max is the maximum l in the spherical harmonic expansion of the field.
+l_max = 500  # l_max is the maximum l in the spherical harmonic expansion of the field.
 
 """mu is the mass of the field."""
 # mu = 1 / m_pl_GeV  # In Planck masses
@@ -168,7 +167,7 @@ ermak_rtol = 1e-6
 """Displays warnings and debug information"""
 
 """The higher verbose is, the more warnings the code prints."""
-verbose = 0
+verbose = 2
 
 """For each value of the debug level, we print everything it 
 prints with lower debug levels.
@@ -228,6 +227,8 @@ n_max = n_min + N
 if n_max * cut_off > r_b:
     raise Exception(f"Cannot trace out degrees of freedom outside the collapsing sphere, "
                     f"n_max * cut_off = {n_max * cut_off} must be smaller than r_b = {r_b}")
+if max(n_values)>N:
+    raise Exception(f"Cannot trace out {max(n_values)} oscillators since there are a total of {N}.\n Modify n_values={n_values} accrodingly.")
 
 # Check if t_ini is smaller than t_min. Raise error otherwise
 if t_ini > t_min:

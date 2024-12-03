@@ -258,7 +258,7 @@ elif par.cosmology=="snyder":
         scale_parameter_derivative_numerical_t[0][skip:], 
         scale_parameter_derivative_numerical_t[1][skip:]
     )
-    if __name__ == "__main__" or par.debug_level>=2:#For debug
+    if __name__ == "__main__" or par.debug_level>=6:#For debug
         pl.plot([scale_parameter_derivative_numerical_t[0],-np.array(scale_parameter_derivative_numerical_t[1])],
                   ylabel=r"$-\dot{a}$",xlabel=r"$t$ ",title="Negative scale param. derivative",
                     yscale="log",

@@ -70,8 +70,8 @@ def diagonal_elements(l):
         at i==1 and i==par.n_max"""
         if i==1:
             res.append( (9 / 4) / (1 - (9 / 4) * kb2) + l * (l + 1) )
-        elif i==par.n_max:
-            res.append((i-0.5)**2/((1-kb2*(i-1/2)**2)*i**2) )
+        # elif i==par.n_max:
+        #     res.append((i-0.5)**2/((1-kb2*(i-1/2)**2)*i**2) )
         else:
             res.append( (1 / i**2) * (
                 ((i + 0.5)**2) / (1 - kb2 * (i + 0.5)**2) +

@@ -1,7 +1,7 @@
 Simulation Settings:
 n_min = 0.000e+00
-N = 1.500e+01
-l_max = 2.000e+02
+N = 3.000e+01
+l_max = 5.000e+02
 cut_off = 1.000e-02
 mu = 0.000e+00
 t_min = 0.000e+00
