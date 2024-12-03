@@ -70,18 +70,18 @@ t_rs = (1 / (2 * c * np.sqrt(k))) * (
 if cosmology=="snyder":
     t_ini = 0  # Time at which the initial conditions on the ground state are imposed.
     t_min = t_ini  # First time at which the entropy scaling is computed
-    # t_max = t_min + collapse_time * (1 - 1e-2)  # Last time at which the entropy scaling is computed
-    t_max = t_min + t_rs/10
+    t_max = t_min + collapse_time * (1 - 5e-3)  # Last time at which the entropy scaling is computed
+    # t_max = t_min + t_rs/10
 elif cosmology=="ds":
     t_ini = 0.1  # Time at which the initial conditions on the ground state are imposed.
     t_min = t_ini  # First time at which the entropy scaling is computed
-    t_max=20
+    t_max=1
 else:
     t_ini = 0.1  # Time at which the initial conditions on the ground state are imposed.
     t_min = t_ini  # First time at which the entropy scaling is computed
     t_max=1
     
-N_t = 1  # Number of time points to consider
+N_t = 2  # Number of time points to consider
 logspaced_times = False  # Use log-spaced time points
 
 #%% Spatial Settings
@@ -93,7 +93,7 @@ n_min = 0  # First considered shell is at n_min.
 # H0_c = 20  # Comoving size of the horizon, it fixes the number of considered spherical shells
 # N = int(H0_c / cut_off)  # Number of considered spherical shells
 
-N = 5  # Number of considered spherical shells
+N = 15  # Number of considered spherical shells
 cut_off = 1e-2  # Value of the comoving cut off.
 if cosmology == "snyder":
     H0_c = r_b  # Comoving size of the horizon, fixed by the initial radius of the star

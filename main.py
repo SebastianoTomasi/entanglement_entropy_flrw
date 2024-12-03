@@ -112,13 +112,9 @@ def dTdt(t):
     a=cosm.scale_factor_t(t)
     R_b=par.r_b*a
     dR_b_dt=par.c*np.sqrt(par.k*(1/a-1))
-    numerator= np.sqrt(
-        1 - par.r_s / R_b + (1 / par.c * dR_b_dt)**2
-    )
+    numerator= np.sqrt(1 - par.r_s / R_b + (1 / par.c * dR_b_dt)**2)
     denominator = 1 - par.r_s / R_b
-    
     result = numerator / denominator
-
     return result
 
 schwarzschild_time_numerical_t=nm.integrate(f=dTdt, a=0, b=par.t_rs,
@@ -170,11 +166,12 @@ pl.plot(auxilliary,
         # xscale="log",
         yscale="log",
         xlabel="$t$ ",
-        ylabel=r"$\Sigma_{j}^{l}(t)$",
+        ylabel=r"Re$(\Sigma_{j}^{l})$",
         x_ticklabels=[str(label) for label in list(np.round(np.array([0,par.t_rs,par.collapse_time]),3))],
         legend=simulation.sigma_l_t_for_plot[1],
         # dotted=True,
         save=par.save_plots,name=save_with_name)
+# %%
 
 save_with_name=f"{par.fixed_name_left}sigmaI_lj{par.fixed_name_right}"
 auxilliary=[ [elem[0],np.imag(elem[1])] for  elem in simulation.sigma_l_t_for_plot[0]]
@@ -184,10 +181,10 @@ pl.plot(auxilliary,
         # xscale="log",
         # yscale="log",
         xlabel="$t$ ",
-        ylabel=r"$\Sigma_{j}^{l}(t)$",
+        ylabel=r"Im$(\Sigma_{j}^{l})$",
         x_ticklabels=[str(label) for label in list(np.round(np.array([0,par.t_rs,par.collapse_time]),3))],
         legend=simulation.sigma_l_t_for_plot[1],
-        dotted=True,connected_dots=True,
+        # dotted=True,connected_dots=True,
         save=par.save_plots,name=save_with_name)
 
 #%%

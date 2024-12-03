@@ -127,7 +127,7 @@ def run():
             efficient we can use the solution rho(times[i]) as initial condition
             for the next time step. In this way we do not compute the same thing
             over and over.
-        4)  Define the covariance matrix sigma_l_t trough the solution of the Ermakov-like 
+        4)  Define the ground state matrix sigma_l_t trough the solution of the Ermakov-like 
             equation.
         5)  Compute the entanglement entropy scaling of sigma_l_t.
         6)  Perform the summation S(l_max)=\sum_{l=0}^{l_max} (2*l+1)S(sigma_l_t). To improve performance
@@ -208,13 +208,11 @@ def run():
             # if l%100==0:
             #     print(np.round(U@coupling_matrix_l@UT,4))
             
-            """Now we have to solve the Ermakov-like equation for each time independent eigevalue contained gamma_l2.
-            We thus perform a cycle on those eigenvalues. The goal is to define the covariance matric \boldsymbol{\Sigma}
-            computed at time t=t."""
-            
-            
-            
-            diagonal_sigma_l_t=[]#Define the diagonal of the covariance matrix here, then we fill it in the next cycle.
+            """Now we have to solve the Ermakov-like equation for each time independent eigevalue 
+            contained gamma_l2.  We thus perform a cycle on those eigenvalues. 
+            The goal is to define the ground state matrix \boldsymbol{\Sigma}^l computed at time t."""
+
+            diagonal_sigma_l_t=[]#Define the diagonal of the ground state matrix here, then we fill it in the next cycle.
             for j,gamma_lj2 in enumerate(gamma_l2):# j gores from 0 to par.N-1 
                 
                 """We can now define the frequencies appearing in the Ermakov-like equation"""
@@ -224,7 +222,9 @@ def run():
                     It needs to be defined globally gamma_l2 and the cosmologcal functions defined in the 
                     cosmology module.
                     """
-                    return par.c**2/cosm.scale_factor_t(t)**2*(gamma_lj2+(par.mu*cosm.scale_factor_t(t)*par.cut_off))
+                    a=cosm.scale_factor_t(t)
+                    muab2=(par.mu*a*par.cut_off)**2
+                    return (par.c/a)**2*(gamma_lj2+muab2)
                 
                 """In the first iteration we have to impose the flat space harmonic oscillator initial conditions"""
                 if i==1:
@@ -232,7 +232,7 @@ def run():
                     # drho_t_prec[l][j]=0 do not need this since it's already zero.
             
                 """We then solve the Ermakov-like equation. We obtain the solution
-                at time t. With this we can construct the time dependent covariance matrix."""
+                at time t. With this we can construct the time dependent ground state matrix."""
                 rho_lj_t,drho_lj_t=solve_ermakov_like(t_min=par.times[i-1],t_max=t,
                                                           rho_t_min=rho_t_prec[l][j],drho_t_min=drho_t_prec[l][j],
                                                           omega_lj2=omega_lj2,
@@ -246,7 +246,7 @@ def run():
                     never come in here, but if not, this will significantly improve results."""
                     rho_lj_t*=-1
                     drho_lj_t*=-1
-                    if par.verbose>=2:
+                    if par.verbose>=0:
                         print(f"Sign change in rho detected and corrected! \nOccured with: \ngamma_lj2={gamma_lj2}\nt={t}")
                 
                 """For checking the results, we plot some of the solutions of the Ermakov-like equation.
@@ -268,11 +268,11 @@ def run():
                 """Save the values to reuse tham in the next cylce on i."""
                 rho_t_prec[l][j],drho_t_prec[l][j]=rho_lj_t,drho_lj_t
                 
-                """We construct the covariance matrix computed at t"""
+                """We construct the ground state matrix computed at t"""
                 diagonal_sigma_l_t.append(1/par.hbar*( 1/rho_lj_t**2-1j*M_t(t)*drho_lj_t/(rho_lj_t) ) )
             
             
-            """After the cycle is compleated, we can construct the actual covariance matrix sigma_l_t and
+            """After the cycle is compleated, we can construct the actual ground state matrix sigma_l_t and
             transform it from the normal coordinates to the physical spatial coordinates."""
             sigma_l_t = np.diag(diagonal_sigma_l_t)
             omega_l_t=np.dot(np.dot(UT,sigma_l_t),U)
@@ -284,7 +284,7 @@ def run():
                     pass
                 else:
                     """Here we need to implement the procedure to compute the entanglement
-                    entropy of a complex covariance matrix. We start from its expression in 
+                    entropy of a complex ground state matrix. We start from its expression in 
                     spatial coordinates: omega_l_t."""
                     
                     """First we define the blocks of omega_l_t"""
@@ -377,7 +377,7 @@ if __name__=="__main__":
             """
             global gamma_lj
             gamma_lj2=gamma_lj**2
-            return par.c**2/cosm.scale_factor_t(t)**2*(gamma_lj2+(par.mu*cosm.scale_factor_t(t)*par.cut_off))
+            return par.c**2/cosm.scale_factor_t(t)**2*(gamma_lj2+(par.mu*cosm.scale_factor_t(t)*par.cut_off)**2)
         
 
         def rho_lj_c1c2_(t, C1, C2):
@@ -454,7 +454,7 @@ if __name__=="__main__":
             """
             global gamma_lj
             gamma_lj2=gamma_lj**2
-            return par.c**2/cosm.scale_factor_t(t)**2*(gamma_lj2+(par.mu*cosm.scale_factor_t(t)*par.cut_off))
+            return par.c**2/cosm.scale_factor_t(t)**2*(gamma_lj2+(par.mu*cosm.scale_factor_t(t)*par.cut_off)**2)
         
         
         def rho_lj_c1c2_(t, C1, C2, epsilon=1e-12):
