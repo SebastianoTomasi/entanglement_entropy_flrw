@@ -6,7 +6,6 @@ Created on Fri Jan 13 15:30:54 2023
 """
 
 import numpy as np
-from math import sqrt, exp
 
 import simulation_parameters as par
 

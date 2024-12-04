@@ -8,6 +8,8 @@ Created on Fri Jan 13 15:30:54 2023
 import numpy as np
 from scipy import interpolate
 from math import sqrt
+import warnings
+
 
 import simulation_parameters as par
 import cosmological_functions2 as cosm_func
@@ -36,6 +38,7 @@ def compute_cosmology_functions():
     hubble_function_t = None
     comoving_horizon_t = None
     cut_off_t = None
+    universe_age = None
 
     # General FLRW cosmology case
     if par.cosmology in ["eds", "lcdm", "rad"]:
@@ -125,7 +128,8 @@ def compute_cosmology_functions():
         cut_off_t = define_cutoff_function(scale_factor_t)
 
     elif par.cosmology == "ds":
-        print("Not fully implemented but works in the basics cases.")
+        # Issue the warning
+        warnings.warn("Not fully implemented but works in the basic cases.", UserWarning)
         # De Sitter universe
         scale_factor_t = lambda t: np.exp(par.ds_hubble_constant * t)
         hubble_function_t = lambda t: par.ds_hubble_constant
@@ -232,12 +236,16 @@ def compute_cosmology_functions():
         raise ValueError(f"Cosmology '{par.cosmology}' not recognized.")
 
     # Return computed functions
-    return {
+    result = {
         'scale_factor_t': scale_factor_t,
         'hubble_function_t': hubble_function_t,
         'comoving_horizon_t': comoving_horizon_t,
         'cut_off_t': cut_off_t
     }
+    
+    if universe_age is not None:
+        result['universe_age'] = universe_age
+    return result
 
 def compute_comoving_horizon(scale_factor_t, cosmic_time_a, dark_density_evolution_a=None):
     """Compute the comoving horizon based on user choice."""
@@ -311,5 +319,9 @@ if not _initialized:
     hubble_function_t = cosmology_funcs['hubble_function_t']
     comoving_horizon_t = cosmology_funcs['comoving_horizon_t']
     cut_off_t = cosmology_funcs['cut_off_t']
+    try:
+        universe_age = cosmology_funcs['universe_age']
+    except:
+        pass
     _initialized = True
 

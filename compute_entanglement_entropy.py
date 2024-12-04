@@ -371,7 +371,7 @@ if __name__ == "__main__":
                 dotted=True, connected_dots=True)
     
     elif par.cosmology == "ds":
-        gamma_lj = 10
+        gamma_lj = 0.1
         gamma_l2 = np.array([gamma_lj ** 2])  # Make it an array for the vectorized solver
         
         def rho_lj_c1c2_(t, C1, C2, epsilon=1e-12):
@@ -390,7 +390,7 @@ if __name__ == "__main__":
             # Constants
             c = par.c                   # Speed of light
             Gamma_lj = gamma_lj         # Gamma_{lj}
-            H = par.hubble_constant     # Hubble constant
+            H = par.ds_hubble_constant     # Hubble constant
             
             # Check if gamma_lj is effectively zero
             if np.isclose(Gamma_lj, 0.0, atol=epsilon):
