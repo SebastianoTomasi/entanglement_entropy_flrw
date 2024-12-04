@@ -41,7 +41,8 @@ def solve_dark_density_evolution_numerical_a():
     Definition of the integrand in the exponent."""
     def de_exponent(x):
         """Since the integral is done w.r.t dx, x=ln(a), the expo"""
-        de_exponent = -3*(1+par.de_eos_a(np.exp(x)))
+        a=np.exp(x)
+        de_exponent = -3*(1+par.de_eos_a(a))
         return de_exponent
     """Compute dark_energy_density_evolution_a(a)=omega_l0*g(a) """
     de_exponent_integral=nm.integrate(f=de_exponent,a=np.log(par.bkg_a_min),b=np.log(par.bkg_a_max),

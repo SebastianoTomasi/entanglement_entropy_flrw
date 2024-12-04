@@ -9,7 +9,7 @@ import numpy as np
 from numpy import sqrt, log
 
 import simulation_parameters as par
-import cosmology as cosm
+import cosmology2 as cosm
 import coupling_matrix as cm
 
 import sys
@@ -135,7 +135,7 @@ def ent_entr_from_slices(A, B, D):
 
 #%%
 
-def collect_plot_data(l, gamma_l2, par, sigma_l_t_for_plot, sigma_l_t_for_plot_legend):
+def collect_plot_data(l, gamma_l2, sigma_l_t_for_plot, sigma_l_t_for_plot_legend):
     """Collect data for plotting sigma_lj_t for specific l and j indices."""
     if l == 0 or l == par.l_max // 2 or l == par.l_max:
         # Indices of j to consider for plotting
@@ -150,6 +150,7 @@ def collect_plot_data(l, gamma_l2, par, sigma_l_t_for_plot, sigma_l_t_for_plot_l
             muab2_ini = (par.mu * a_ini * b_ini) ** 2
             omega_lj2_ini = (par.c / a_ini) ** 2 * (gamma_lj2_val + muab2_ini)
             M_t_ini = M_t(par.t_ini)
+            
             rho_t_min = 1 / np.sqrt(M_t_ini * np.sqrt(omega_lj2_ini))
             drho_t_min = 0.
 
@@ -235,7 +236,7 @@ def run():
                 
                 # Collect data for plotting if debug level is high enough
                 if par.debug_level >= 3:
-                    collect_plot_data(l, gamma_l2, par, sigma_l_t_for_plot, sigma_l_t_for_plot_legend)
+                    collect_plot_data(l, gamma_l2, sigma_l_t_for_plot, sigma_l_t_for_plot_legend)
             
             # Solve the Ermakov-like equation vectorized
             rho_l_t, drho_l_t = solve_ermakov_like_vectorized(

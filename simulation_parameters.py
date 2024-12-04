@@ -32,8 +32,8 @@ hbar = 1  # const.hbar
 # hbar = const.hbar
 
 #%% Cosmology Setup
-cosmologies = ["flat", "eds", "curved eds", "lcdm", "rad", "ds", "snyder"]
-cosmology = "snyder"
+cosmologies = ["flat", "eds", "lcdm", "rad", "ds", "snyder"]
+cosmology = "ds"
 
 """We leave the possibility of defining a custom equation of state for dark energy. 
 Here you can write your own. Default is the cosmological constant."""
@@ -42,7 +42,9 @@ def de_eos_a(a):
     return -1
 
 H0 = 67  # Km/(s*Mpc)
+ds_hubble_constant=0.5
 hubble_constant = H0 * const.convert_hubble  # It is in Gy^-1
+
 
 #%%
 """Parameters of the collapsing star, used in the Snyder collapse model."""
@@ -70,18 +72,18 @@ t_rs = (1 / (2 * c * np.sqrt(k))) * (
 if cosmology=="snyder":
     t_ini = 0  # Time at which the initial conditions on the ground state are imposed.
     t_min = t_ini  # First time at which the entropy scaling is computed
-    t_max = t_min + collapse_time * (1 - 1e-2)  # Last time at which the entropy scaling is computed
+    t_max = t_min + collapse_time * (1 - 1e-3)  # Last time at which the entropy scaling is computed
     # t_max = t_min + t_rs/10
 elif cosmology=="ds":
-    t_ini = 0.1  # Time at which the initial conditions on the ground state are imposed.
+    t_ini = -10  # Time at which the initial conditions on the ground state are imposed.
     t_min = t_ini  # First time at which the entropy scaling is computed
-    t_max=1
+    t_max=0
 else:
     t_ini = 0.1  # Time at which the initial conditions on the ground state are imposed.
     t_min = t_ini  # First time at which the entropy scaling is computed
     t_max=1
     
-N_t =100 # Number of time points to consider
+N_t =20 # Number of time points to consider
 logspaced_times = False  # Use log-spaced time points
 
 #%% Spatial Settings
@@ -93,7 +95,7 @@ n_min = 0  # First considered shell is at n_min.
 # H0_c = 20  # Comoving size of the horizon, it fixes the number of considered spherical shells
 # N = int(H0_c / cut_off)  # Number of considered spherical shells
 
-N = 30  # Number of considered spherical shells
+N = 15  # Number of considered spherical shells
 cut_off = 1e-2  # Value of the comoving cut off.
 if cosmology == "snyder":
     H0_c = r_b  # Comoving size of the horizon, fixed by the initial radius of the star
@@ -111,17 +113,17 @@ only half of the points, n_values = np.arange(n_min, n_max + 1, 2), or just two 
 n_values = [n_min, int(1/5 * N), int(2/5 * N), int(3/5 * N), int(4/5 * N)]
 # n_values = [n_min, int(4/5 * N)]
 
-# n_values = np.arange(0, 4*N//5, 1)
+# n_values = np.arange(n_min, 4*N//5+1, 1)
 
 # Percentage of data excluded from the linear fit to avoid edge effects.
 skip_first_percent = 0
 skip_last_percent = 0
 
-l_max = 500  # l_max is the maximum l in the spherical harmonic expansion of the field.
+l_max = 200  # l_max is the maximum l in the spherical harmonic expansion of the field.
 
 """mu is the mass of the field."""
 # mu = 1 / m_pl_GeV  # In Planck masses
-mu = 0  # In Planck masses
+mu = 0 # In Planck masses
 
 #%% Precision Parameters
 """Here you can set the precision parameters for the various integrations that the code performs."""
@@ -129,16 +131,19 @@ mu = 0  # In Planck masses
 """Particle horizon integration parameters"""
 # hor_atol = 1e-15
 # hor_rtol = 1e-12
-hor_atol = 1e-10
-hor_rtol = 1e-7
+hor_atol = 1e-9
+hor_rtol = 1e-6
 
-horizon_a_min = 1e-15
+horizon_a_min = 1e-9
 horizon_a_max = 1
 horizon_size_at_a_min = 0
 
 """Background integration limits, used for the dark density evolution and Friedmann equation integration"""
-bkg_a_min = 1e-15
-bkg_a_max = 1
+bkg_a_min = 1e-9
+if cosmology=="snyder":
+    bkg_a_max = 1-bkg_a_min
+else:
+    bkg_a_max = 1
 
 """Precision parameters for the integral of the fluid equation."""
 dark_energy_density_evolution_atol = 1e-10
@@ -146,9 +151,10 @@ dark_energy_density_evolution_rtol = 1e-8
 dark_energy_density_evolution_max_step = 1e-3
 
 """Precision parameters for the integral of the Friedmann equation to compute t(a)."""
-friedmann_atol = 1e-6
-friedmann_rtol = 1e-4
-friedmann_max_stepsize = 1e-3
+friedmann_atol = 1e-12
+friedmann_rtol = 1e-9
+# friedmann_max_stepsize = 1e-3
+friedmann_max_stepsize=np.inf
 
 """Ermakov-like equation integration
 These have a great impact on the code performance. While the cosmology is solved
@@ -168,6 +174,7 @@ ermak_rtol = 1e-6
 
 """The higher verbose is, the more warnings the code prints."""
 verbose = 2
+debug_level = 4
 
 """For each value of the debug level, we print everything it 
 prints with lower debug levels.
@@ -183,7 +190,7 @@ if debug_level == 3:
 if debug_level == 4:
     - Plot even more solutions for rho_lj(t).
     - Print the % error on the entanglement entropy."""
-debug_level = 4
+
 
 #%% Density Parameters for the Chosen Cosmology
 cosmology_params = {
@@ -241,7 +248,7 @@ The values of those parameters are also saved in a .txt file in the plot folder.
 
 important_parameters = ["n_min", "N", "l_max", "cut_off", "mu", "t_min", "t_max", "N_t",
                         "omega_m0", "omega_r0", "omega_l0", "omega_k0", "cut_off_type", "horizon_type",
-                        "k", "r_b", "r_s", "t_rs", "collapse_time"]
+                        "k", "r_b", "r_s", "t_rs", "collapse_time","ds_hubble_constant"]
 
 display_parameter_names = {  # To display the parameters in the plots
     "mu": r"$\mu$",
@@ -253,7 +260,7 @@ display_parameter_names = {  # To display the parameters in the plots
     "N_t": r"$N_t$"
 }
 
-fixed_name_left=f"{save_plot_dir}/{cosmology}/mu={mu}/"
+fixed_name_left=f"{save_plot_dir}/{cosmology}/mu={mu}/test/"
 fixed_name_right=f""
 os.makedirs(fixed_name_left, exist_ok=True)
 

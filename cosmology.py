@@ -19,7 +19,7 @@ import numerical_methods as nm
 
 """We distinguish flat and nonflat cases. Even if the formalism is the same,
 it is easier to just separate the two."""
-["flat","eds","curved eds","lcdm","rad","ds"]
+["flat","eds","lcdm","rad","ds"]
 if par.cosmology=="eds" or par.cosmology=="lcdm" or par.cosmology=="rad":
     #%% GENERAL FLRW COSMOLOGY CASE
     
@@ -188,7 +188,8 @@ elif par.cosmology=="ds":
 elif par.cosmology=="snyder":
     
     def friedmann_equation_log_integrand(y):
-        return -np.e**y/np.sqrt(np.e**(-y)-1)
+        a=np.exp(y)
+        return -a/np.sqrt(1/a-1)
         
     constants_times_t = nm.integrate(f=friedmann_equation_log_integrand,
                                               a=np.log(par.bkg_a_min), b=np.log(par.bkg_a_max),
