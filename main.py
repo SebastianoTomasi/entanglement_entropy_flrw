@@ -41,8 +41,6 @@ entropy_scale=par.cut_off**(2)
 
 times = par.times[1:]  # Slice par.times from the second element onward
 
-
-
 """Plot the entanglement entropy scaling for some selectd times"""
 selected=[simulation.comoving_entanglement_entropy_scaling_t[i] for i in [0, (len(par.times)-1)//2, (len(par.times)-1)-1]]
 legend = [f"t={times[i]}" for i in [0, (len(times)-1)//2, len(times)-1]]
@@ -56,14 +54,15 @@ pl.plot(selected,
         legend=legend,dotted=True,connected_dots=True,
         save=par.save_plots, name= save_with_name)
 
+
 """Plot the fitted angular coefficients and their % errors."""
+
 save_with_name=f"{par.fixed_name_left}comoving_ee_slopes_t_{par.fixed_name_right}"
-#scale it. m=S_N/(cut_off*N)^2 then m*b^2=S_N/N^2
 pl.plot([times,np.array(simulation.comoving_angular_coefficients)],
         # title="Entanglement entropy best fit slope at various times.",
         title=None,
         xlabel="$t$ ",
-        ylabel="Slope",
+        ylabel="Comoving slope",
         legend=[None],dotted=True,connected_dots=True,
         save=par.save_plots,name=save_with_name)
 
@@ -73,16 +72,15 @@ pl.plot([times,simulation.comoving_angular_coefficients],
         title=None,
         xlabel="$t$ ",
         ylabel="Comoving Slope",
+        yscale="log",
         x_ticks=[par.t_min,par.t_rs,par.collapse_time],
         x_ticklabels = [
                         r"$t_{\text{min}}=$" + str(f"{par.t_min:.2g}"),
                         r"$t_{\text{rs}}=$" + str(f"{par.t_rs:.2g}"),
                         r"$t_{\text{c}}=$" + str(f"{par.collapse_time:.2g}")
                         ],
-        yscale="log",
         legend=[None],dotted=True,connected_dots=True,
         save=par.save_plots,name=save_with_name)
-
 save_with_name=f"{par.fixed_name_left}comoving_ee_slopes_t_errors{par.fixed_name_right}"
 pl.plot([times,simulation.comoving_angular_coefficients_errors],
         # title="Fit errors on the angular coefficients",
@@ -91,9 +89,11 @@ pl.plot([times,simulation.comoving_angular_coefficients_errors],
         ylabel="$\%$ error", legend=[None],
         dotted=True,connected_dots=True,
         save=par.save_plots,name=save_with_name)
+
 """Ent"""
+physical_angular_coefficients=cosm.scale_factor_t(times)**(-2)*simulation.comoving_angular_coefficients
 save_with_name=f"{par.fixed_name_left}physical_ee_slopes_t_{par.fixed_name_right}"
-pl.plot([times,cosm.scale_factor_t(times)**(-2)*simulation.comoving_angular_coefficients],
+pl.plot([times,physical_angular_coefficients],
         # title="Entanglement entropy physical slope at various.",
         title=None,
         xlabel="$t$ ",
@@ -125,9 +125,23 @@ if snyder:
     schwarzschild_time_t=sp.interpolate.InterpolatedUnivariateSpline(schwarzschild_time_numerical_t[0], 
                                                                      schwarzschild_time_numerical_t[1],
                                                                      k=3)
+    times_previus_collapse=np.array([t for t in times if t<par.t_rs])
     
-    tbars=[float(schwarzschild_time_t(t)) for t in times if t<par.t_rs]
     
+    how_many_schw_times=len(times_previus_collapse)
+    
+    save_with_name=f"{par.fixed_name_left}comoving_ee_slopes_t_before_t_rs{par.fixed_name_right}"
+    pl.plot([times_previus_collapse,simulation.comoving_angular_coefficients[:how_many_schw_times]],
+            # title="Schwarzschild time as a function of comoving time",
+            title=None,
+            # yscale="log",
+            legend=[None],
+            xlabel=r"$t$",ylabel=r"Comoving slope",
+            save=par.save_plots,name=save_with_name
+            )
+    
+    
+    tbars=schwarzschild_time_t(times_previus_collapse)
     how_many_schw_times=len(tbars)
     pl.plot([[par.times[1:how_many_schw_times+1],tbars],schwarzschild_time_numerical_t],
             # title="Schwarzschild time as a function of comoving time",
@@ -151,17 +165,21 @@ if snyder:
             legend=[None],dotted=True,connected_dots=True,
             save=par.save_plots,name=save_with_name)
     
-    phy_ang_coeff=sp.interpolate.InterpolatedUnivariateSpline( times,
-                                                                cosm.scale_factor_t(times)**(-2)*simulation.comoving_angular_coefficients,
-                                                                k=3)
+    phy_ang_coeff=sp.interpolate.InterpolatedUnivariateSpline(times,
+                                                            cosm.scale_factor_t(times)**(-2)*simulation.comoving_angular_coefficients,
+                                                            k=max(3 if len(times) > 3 else len(times) - 1,1))
     asymptote_val=phy_ang_coeff(par.t_rs)
     asymptote_x=np.linspace(schwarzschild_time_t(par.t_ini),schwarzschild_time_t(par.t_rs*(1-1e-2)),200 )
     asymptote_y=np.ones(200)*asymptote_val
     
+    def auxxer(x):
+        return asymptote_val
+    
+    
     save_with_name=f"{par.fixed_name_left}physical_ee_slopes_T{par.fixed_name_right}"
     pl.plot([
         [tbars,simulation.comoving_angular_coefficients[:how_many_schw_times]*cosm.scale_factor_t(par.times[1:how_many_schw_times+1])**(-2)],
-             [asymptote_x,asymptote_y]
+             # [asymptote_x,asymptote_y]
              ],
             # title="Physical entanglement entropy slope at various Schwarzschild times.",
             legend=["Numerical points","Asymptote"],
@@ -170,6 +188,7 @@ if snyder:
             ylabel="Physical Slope",
             x_ticklabels=[str(label) for label in list(np.round(np.array([0,par.t_rs,par.collapse_time]),3))],
             dotted=True,connected_dots=True,
+            func_to_compare=np.vectorize(auxxer),
             save=par.save_plots,name=save_with_name)
 
 # %%

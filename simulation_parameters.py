@@ -33,7 +33,7 @@ hbar = 1  # const.hbar
 
 #%% Cosmology Setup
 cosmologies = ["flat", "eds", "lcdm", "rad", "ds", "snyder"]
-cosmology = "ds"
+cosmology = "snyder"
 
 """We leave the possibility of defining a custom equation of state for dark energy. 
 Here you can write your own. Default is the cosmological constant."""
@@ -75,15 +75,15 @@ if cosmology=="snyder":
     t_max = t_min + collapse_time * (1 - 1e-3)  # Last time at which the entropy scaling is computed
     # t_max = t_min + t_rs/10
 elif cosmology=="ds":
-    t_ini = -10  # Time at which the initial conditions on the ground state are imposed.
+    t_ini = -1  # Time at which the initial conditions on the ground state are imposed.
     t_min = t_ini  # First time at which the entropy scaling is computed
-    t_max=0
+    t_max=1
 else:
     t_ini = 0.1  # Time at which the initial conditions on the ground state are imposed.
     t_min = t_ini  # First time at which the entropy scaling is computed
     t_max=1
     
-N_t =20 # Number of time points to consider
+N_t = 200 # Number of time points to consider
 logspaced_times = False  # Use log-spaced time points
 
 #%% Spatial Settings
@@ -110,16 +110,22 @@ For example, if we set n_values = np.arange(n_min, n_max + 1) we have maximum in
 on the entropy scaling. This can be used to check if the system satisfies an area law.
 But we can diminish the number of n_values for sake of speed. For example, we may consider
 only half of the points, n_values = np.arange(n_min, n_max + 1, 2), or just two points n_values = [N // 4, N // 2]."""
-n_values = [n_min, int(1/5 * N), int(2/5 * N), int(3/5 * N), int(4/5 * N)]
-# n_values = [n_min, int(4/5 * N)]
+num_n_val=5
+n_values = n_min + np.asarray(sorted(set([
+    int(i / num_n_val * N)
+    for i in range(num_n_val+1)
+    if 1 - i / num_n_val > 0.15
+])))
 
-# n_values = np.arange(n_min, 4*N//5+1, 1)
+# n_values = n_min+np.asarray([n_min, int(23/20 * N)])
+
+# n_values = n_min+np.arange(0, 23*N//20+1, 1)
 
 # Percentage of data excluded from the linear fit to avoid edge effects.
 skip_first_percent = 0
 skip_last_percent = 0
 
-l_max = 200  # l_max is the maximum l in the spherical harmonic expansion of the field.
+l_max = 250  # l_max is the maximum l in the spherical harmonic expansion of the field.
 
 """mu is the mass of the field."""
 # mu = 1 / m_pl_GeV  # In Planck masses
@@ -146,9 +152,9 @@ else:
     bkg_a_max = 1
 
 """Precision parameters for the integral of the fluid equation."""
-dark_energy_density_evolution_atol = 1e-10
+dark_energy_density_evolution_atol = 1e-11
 dark_energy_density_evolution_rtol = 1e-8
-dark_energy_density_evolution_max_step = 1e-3
+dark_energy_density_evolution_max_step =np.inf# 1e-3
 
 """Precision parameters for the integral of the Friedmann equation to compute t(a)."""
 friedmann_atol = 1e-12
@@ -260,7 +266,7 @@ display_parameter_names = {  # To display the parameters in the plots
     "N_t": r"$N_t$"
 }
 
-fixed_name_left=f"{save_plot_dir}/{cosmology}/mu={mu}/test/"
+fixed_name_left=f"{save_plot_dir}/{cosmology}/mu={mu}/"
 fixed_name_right=f""
 os.makedirs(fixed_name_left, exist_ok=True)
 
