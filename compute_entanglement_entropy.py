@@ -9,7 +9,7 @@ import numpy as np
 from numpy import sqrt, log
 
 import simulation_parameters as par
-import cosmology2 as cosm
+import cosmology as cosm
 import coupling_matrix as cm
 
 import sys
@@ -202,7 +202,7 @@ def run():
             raise Exception(f"There are some gamma_lj^2 which are negative!:\n {gamma_l2[negative_values]}")
         gamma_l2_list.append(gamma_l2)
         UT_list.append(UT)
-    
+             
     # Initialize variables for plotting if debug level is high enough
     sigma_l_t_for_plot = []
     sigma_l_t_for_plot_legend = []

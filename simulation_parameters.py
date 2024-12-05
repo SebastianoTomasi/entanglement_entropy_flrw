@@ -13,7 +13,8 @@ import constants as const
 
 #%% Output and Plot Settings
 """If true, it loads the saved data for the entanglement entropy and displays them.
-To select which data to load, set this file as you would to run the simulation."""
+To select which data to load, set the mass (mu) and the cosmology. The other parameters will 
+be imported automatically."""
 plot_saved_data = False  # True or False
 
 """Output saving options."""
@@ -23,13 +24,13 @@ save_plots = True  # True or False
 save_plot_dir = "./plots"
 
 #%% Physical Constants
-G = 1  # const.G
-c = 1  # const.c
-hbar = 1  # const.hbar
+# G = 1  # const.G
+# c = 1  # const.c
+# hbar = 1  # const.hbar
 
-# G = const.G
-# c = const.c
-# hbar = const.hbar
+G = const.G
+c = const.c
+hbar = const.hbar
 
 #%% Cosmology Setup
 cosmologies = ["flat", "eds", "lcdm", "rad", "ds", "snyder"]
@@ -49,10 +50,13 @@ hubble_constant = H0 * const.convert_hubble  # It is in Gy^-1
 #%%
 """Parameters of the collapsing star, used in the Snyder collapse model."""
 
-# bh_mass = 1 * const.Msun  # Mass of the collapsing star
-# r_b = (8 * bh_mass / np.pi**2)**(1/3)  # Initial radius of the collapsing star.
-# r_s = 2 * G * bh_mass / c**2  # Schwarzschild radius of the star 
-# r_b = 695508  # meters
+# rho_nuclear = 2.3e17    # Nuclear density in kg/m^3
+# # Mass of the collapsing star
+# bh_mass = 10 * const.Msun    # Mass in kg
+# # Initial radius of the collapsing star (r_b) such that initial density equals nuclear density
+# r_b = ((3 * bh_mass) / (4 * np.pi * rho_nuclear))**(1/3)  # Radius in meters
+# # Schwarzschild radius (r_s)
+# r_s = (2 * G * bh_mass) / c**2  # Radius in meters
 
 r_s = 1
 r_b = (r_s*8)**(1/3)
@@ -73,7 +77,7 @@ if cosmology=="snyder":
     t_ini = 0  # Time at which the initial conditions on the ground state are imposed.
     t_min = t_ini  # First time at which the entropy scaling is computed
     t_max = t_min + collapse_time * (1 - 1e-3)  # Last time at which the entropy scaling is computed
-    # t_max = t_min + t_rs/10
+    # t_max = t_min + t_rs/5
 elif cosmology=="ds":
     t_ini = -1  # Time at which the initial conditions on the ground state are imposed.
     t_min = t_ini  # First time at which the entropy scaling is computed
@@ -83,7 +87,7 @@ else:
     t_min = t_ini  # First time at which the entropy scaling is computed
     t_max=1
     
-N_t = 200 # Number of time points to consider
+N_t = 4 # Number of time points to consider
 logspaced_times = False  # Use log-spaced time points
 
 #%% Spatial Settings
@@ -110,7 +114,7 @@ For example, if we set n_values = np.arange(n_min, n_max + 1) we have maximum in
 on the entropy scaling. This can be used to check if the system satisfies an area law.
 But we can diminish the number of n_values for sake of speed. For example, we may consider
 only half of the points, n_values = np.arange(n_min, n_max + 1, 2), or just two points n_values = [N // 4, N // 2]."""
-num_n_val=5
+num_n_val=10
 n_values = n_min + np.asarray(sorted(set([
     int(i / num_n_val * N)
     for i in range(num_n_val+1)
@@ -119,17 +123,18 @@ n_values = n_min + np.asarray(sorted(set([
 
 # n_values = n_min+np.asarray([n_min, int(23/20 * N)])
 
-# n_values = n_min+np.arange(0, 23*N//20+1, 1)
+# n_values = n_min+np.arange(0, 20*N//23+1, 1)
 
 # Percentage of data excluded from the linear fit to avoid edge effects.
+# Use only if max(n_values) is close (15-10%) to n_max
 skip_first_percent = 0
 skip_last_percent = 0
 
-l_max = 250  # l_max is the maximum l in the spherical harmonic expansion of the field.
+l_max = 200  # l_max is the maximum l in the spherical harmonic expansion of the field.
 
 """mu is the mass of the field."""
 # mu = 1 / m_pl_GeV  # In Planck masses
-mu = 0 # In Planck masses
+mu = 0.01 # In Planck masses
 
 #%% Precision Parameters
 """Here you can set the precision parameters for the various integrations that the code performs."""
@@ -145,7 +150,7 @@ horizon_a_max = 1
 horizon_size_at_a_min = 0
 
 """Background integration limits, used for the dark density evolution and Friedmann equation integration"""
-bkg_a_min = 1e-9
+bkg_a_min = 1e-12
 if cosmology=="snyder":
     bkg_a_max = 1-bkg_a_min
 else:
@@ -168,10 +173,10 @@ once for all, we have to solve the Ermakov-like equation np.sum(l_max * n_values
 If the code runs slow, you can diminish the precision."""
 # ermak_atol = 1e-12
 # ermak_rtol = 1e-10
-# ermak_atol = 1e-10
-# ermak_rtol = 1e-8
-ermak_atol = 1e-8
-ermak_rtol = 1e-6
+ermak_atol = 1e-10
+ermak_rtol = 1e-8
+# ermak_atol = 1e-8
+# ermak_rtol = 1e-6
 # ermak_atol = 1e-6
 # ermak_rtol = 1e-4
 
@@ -252,9 +257,19 @@ times = np.insert(times, 0, t_ini)
 """The important parameters are printed when the compute_entanglement_entropy function is called. 
 The values of those parameters are also saved in a .txt file in the plot folder."""
 
-important_parameters = ["n_min", "N", "l_max", "cut_off", "mu", "t_min", "t_max", "N_t",
-                        "omega_m0", "omega_r0", "omega_l0", "omega_k0", "cut_off_type", "horizon_type",
-                        "k", "r_b", "r_s", "t_rs", "collapse_time","ds_hubble_constant"]
+important_parameters = ["cosmology","n_min", "N","n_values", "l_max", 
+                        "cut_off", 
+                        "mu",
+                        "t_min", "t_max", "N_t"
+                        ]
+
+if cosmology=="snyder":
+    important_parameters.extend(["k", "r_b", "r_s", "t_rs", "collapse_time"])
+elif cosmology=="ds":
+    important_parameters.extend(["ds_hubble_constant"])
+else:
+    important_parameters.extend(["omega_m0", "omega_r0", "omega_l0", "omega_k0"])
+
 
 display_parameter_names = {  # To display the parameters in the plots
     "mu": r"$\mu$",
@@ -266,7 +281,7 @@ display_parameter_names = {  # To display the parameters in the plots
     "N_t": r"$N_t$"
 }
 
-fixed_name_left=f"{save_plot_dir}/{cosmology}/mu={mu}/"
+fixed_name_left=f"{save_plot_dir}/{cosmology}/mu={mu}/"#area_law_holds/
 fixed_name_right=f""
 os.makedirs(fixed_name_left, exist_ok=True)
 

@@ -123,29 +123,52 @@ class EntanglementEntropySimulation:
         try:
             aux = io.load_data(f"{par.fixed_name_left}comoving_entanglement_entropy_scaling_t{par.fixed_name_right}")
             self.parameters = aux[0]
-            self.times = aux[1][0]
-            self.comoving_entanglement_entropy_scaling_t = aux[1][1]
-            self.rho_for_plot_t = aux[2]
+            data = aux[1]
+            self.times = data[0]
+            self.comoving_entanglement_entropy_scaling_t = data[1]
+            self.rho_for_plot_t = data[2]
+            self.sigma_l_t_for_plot = data[3]
         except Exception as e:
             print(f"Error loading simulation data: {e}")
             return
-
+    
         try:
             aux = io.load_data(f"{par.fixed_name_left}comoving_entanglement_entropy_scaling_t_fit_params{par.fixed_name_right}")
-            self.comoving_angular_coefficients = aux[1][1]
-            self.comoving_angular_coefficients_errors = aux[1][2]
+            
+            self.parameters = aux[0]
+            for key, value in self.parameters.items():#This make sure we are using the correct parameters
+                setattr(par, key, value)
+            print("Simulation Settings:")
+            for key, value in self.parameters.items():
+                formatted_value = f"{value:.1e}" if isinstance(value, (int, float)) else value
+                print(f"{key} = {formatted_value}")
+            print("")
+            
+            data = aux[1]
+            self.times = data[0]
+            self.comoving_angular_coefficients = data[1]
+            self.comoving_angular_coefficients_errors = data[2]
+            self.comoving_intercepts = data[3]
+            self.comoving_intercepts_errors = data[4]
             self.did_fit = True
         except Exception:
             print("No fit data found.")
             self.did_fit = False
 
+
     def save_data(self):
         """Save the simulation data and optionally plot settings to files."""
         io.save_data(
-            data=[self.times, self.comoving_entanglement_entropy_scaling_t, self.rho_for_plot_t],
+            data=[
+                self.times,
+                self.comoving_entanglement_entropy_scaling_t,
+                self.rho_for_plot_t,
+                self.sigma_l_t_for_plot
+            ],
             path=f"{par.fixed_name_left}comoving_entanglement_entropy_scaling_t{par.fixed_name_right}",
-            header=self.parameters)
-
+            header=self.parameters
+        )
+    
         if self.did_fit:
             io.save_data(
                 data=[
@@ -156,8 +179,9 @@ class EntanglementEntropySimulation:
                     self.comoving_intercepts_errors
                 ],
                 path=f"{par.fixed_name_left}comoving_entanglement_entropy_scaling_t_fit_params{par.fixed_name_right}",
-                header=self.parameters)
-
+                header=self.parameters
+            )
+    
         if par.save_plots:
             file_path = f"{par.fixed_name_left}simulation_settings{par.fixed_name_right}.txt"
             with open(file_path, 'w') as file:
@@ -165,3 +189,4 @@ class EntanglementEntropySimulation:
                 for key, value in self.parameters.items():
                     formatted_value = f"{value:.3e}" if isinstance(value, (int, float)) else value
                     file.write(f"{key} = {formatted_value}\n")
+
