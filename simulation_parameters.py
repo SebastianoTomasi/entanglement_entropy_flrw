@@ -227,11 +227,10 @@ else:
     raise ValueError(f"Unknown cosmology type: {cosmology}")
 
 #%% Derived Parameters
-"""These settings cannot be changed because the other options are not yet fully implemented."""
+"""cut_off_type and horizon_type  cannot be changed because the other options are not yet fully implemented."""
 
 cut_off_types = ["fixed_comoving", "fixed_physical"]
 cut_off_type = "fixed_comoving"
-
 horizon_types = ["fixed_comoving", "fixed_physical", "particle_horizon"]
 horizon_type = "fixed_comoving"
 
@@ -353,5 +352,4 @@ if __name__ == "__main__":
     print("  Cut-off type (cut_off_type) =", cut_off_type)
     print("  Horizon type (horizon_type) =", horizon_type)
     print("  Maximum shell index (n_max) =", n_max)
-    # Optionally, you can print times if needed
-    # print("  Time points (times) =", times)
+
