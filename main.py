@@ -8,7 +8,7 @@ import time as timee
 import scipy as sp
 from datetime import datetime
 import numpy as np
-import cosmology2 as cosm
+import cosmology as cosm
 now = datetime.now()
 # Format the date and time in Italian convention: day/month/year hour:minute:second
 it_datetime = now.strftime("%d_%m_%Y_%H_%M_%S_")
