@@ -199,7 +199,7 @@ def run():
         gamma_l2, UT = sp.linalg.eigh(coupling_matrix_l)
         negative_values = gamma_l2 < 0
         if any(negative_values):
-            raise Exception(f"There are some gamma_lj^2 which are negative!:\n {gamma_l2[negative_values]}")
+            raise Exception(f"There are some gamma_lj^2 which are negative!:\n {gamma_l2[negative_values]},\n{negative_values}")
         gamma_l2_list.append(gamma_l2)
         UT_list.append(UT)
              
@@ -342,7 +342,7 @@ if __name__ == "__main__":
         rho_lj_c1c2 = rho_lj_c1c2_
         
         def rho_ij(t):
-            return np.abs(rho_lj_c1c2(t, 0.1, 1))
+            return np.abs(rho_lj_c1c2(t, 1, 1))
         
         # Initial conditions
         rho_t_min = np.array([rho_ij(par.t_ini)])
@@ -366,8 +366,9 @@ if __name__ == "__main__":
         rho_lj_t_analytical = rho_ij(t_num)
         
         # Plot the results
-        pl.plot([[t_num, rho_lj_t_num], [t_num, rho_lj_t_analytical]],
+        pl.plot([[t_num, rho_lj_t_analytical]],
                 legend=["Numerical", "Analytical"],
+                # xlim=(0.1,0.11),
                 dotted=True, connected_dots=True)
     
     elif par.cosmology == "ds":

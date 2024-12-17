@@ -9,6 +9,7 @@ import numpy as np
 from scipy import interpolate
 from math import sqrt
 import warnings
+from scipy.optimize import root
 
 
 import simulation_parameters as par
@@ -26,12 +27,6 @@ _initialized = False
 
 def compute_cosmology_functions():
     """Compute cosmological functions based on the selected cosmology."""
-
-    # Supported cosmologies
-    supported_cosmologies = ["eds", "lcdm", "rad", "ds", "snyder", "flat"]
-
-    if par.cosmology not in supported_cosmologies:
-        raise ValueError(f"Cosmology '{par.cosmology}' not recognized. Supported cosmologies are {supported_cosmologies}.")
 
     # Initialize functions
     scale_factor_t = None
@@ -193,7 +188,21 @@ def compute_cosmology_functions():
         # Compute Hubble function H(t) = (da/dt)/a
         H_values = da_dt / a_values
         hubble_function_t = interpolate.InterpolatedUnivariateSpline(unique_t, H_values[unique_indices], k=3)
-    
+
+        c = par.max_h_for_adiabaticity
+        # Define the function for which we seek the root: f(t) - c = 0
+        def equation(t):
+            return hubble_function_t(t) - c
+        # Initial guess
+        initial_guess = 0.1
+        # Solve for t
+        adiabatic_solution = root(equation, initial_guess)
+        if adiabatic_solution.success:
+            t_solution = adiabatic_solution.x[0]  # Extract the scalar value
+            print(f"H(t) = {c} for t = {round(t_solution,5)}")
+        else:
+            print(f"Root finding did not converge: {adiabatic_solution.message}")
+
         # Compute collapse time
         collapse_time = t_values[-1]
         if __name__ == "__main__":
@@ -208,9 +217,9 @@ def compute_cosmology_functions():
         if __name__ == "__main__" or par.debug_level >= 2:
             pl.plot([[t_values, a_values],
                 [t_analytical, a_analytical]],
-                title="Scale Factor a(t)",
-                xlabel="Time t",
-                ylabel="Scale Factor a(t)",
+                title=r"Scale Factor $a(t)$",
+                xlabel=r"$t$",
+                ylabel=r"$a(t)$",
                 legend=["Numerical", "Analytical"]
             )
     

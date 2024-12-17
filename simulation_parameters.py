@@ -18,21 +18,42 @@ be imported automatically."""
 plot_saved_data = False  # True or False
 
 """Output saving options."""
-save_data = True  # True or False
+save_data = False  # True or False
 
-save_plots = True  # True or False
+save_plots = save_data # True or False
 save_plot_dir = "./plots"
 
 #%% Physical Constants
-# G = 1  # const.G
-# c = 1  # const.c
-# hbar = 1  # const.hbar
 
-G = const.G
-c = const.c
-hbar = const.hbar
+#For planck units
+# G = 1
+# c = 1  
+# hbar = 1  
+
+#For natural units
+G = 6.718e-45#MeV
+c = 1  
+hbar = 1 
+# l_planck=1e-19 
+
+#For SI units
+# G = const.G
+# c = const.c
+# hbar = const.hbar
+
+
+
+
+# %%
+"""Those are the most commons parameters that I usually change"""
+N_t = 15 # Number of time points to consider
+N = 15 # Number of considered spherical shells
+num_n_val=10
+l_max = 300 # l_max is the maximum l in the spherical harmonic expansion of the field.
+mu = 0 # Field mass in MeV, electron has 0.5MeV
 
 #%% Cosmology Setup
+
 cosmologies = ["flat", "eds", "lcdm", "rad", "ds", "snyder"]
 cosmology = "snyder"
 
@@ -44,8 +65,10 @@ def de_eos_a(a):
 
 H0 = 67  # Km/(s*Mpc)
 ds_hubble_constant=0.5
-hubble_constant = H0 * const.convert_hubble  # It is in Gy^-1
+hubble_constant = H0 * const.convert_hubble  # It is in Gy^-1. Carefull if you use non SI units. Fon snyder does not matter since hubble is not used.
 
+"""Used to compute the time at wich the adiabatic condition does not hold anymore: H(t)=max_h_for_adiabaticity"""
+max_h_for_adiabaticity=-1e-2
 
 #%%
 """Parameters of the collapsing star, used in the Snyder collapse model."""
@@ -58,7 +81,7 @@ hubble_constant = H0 * const.convert_hubble  # It is in Gy^-1
 # # Schwarzschild radius (r_s)
 # r_s = (2 * G * bh_mass) / c**2  # Radius in meters
 
-r_s = 1
+r_s = 1#In natural units this is 1/MeV=1.97327e−13 meters
 r_b = (r_s*8)**(1/3)
 
 k = r_s / r_b**3  # Spatial curvature
@@ -70,14 +93,15 @@ t_rs = (1 / (2 * c * np.sqrt(k))) * (
     np.arccos((2 * r_s / r_b) - 1)
 )
 
+
 #%% Time Settings
 """Times at which we compute the entanglement entropy"""
 
 if cosmology=="snyder":
     t_ini = 0  # Time at which the initial conditions on the ground state are imposed.
     t_min = t_ini  # First time at which the entropy scaling is computed
-    t_max = t_min + collapse_time * (1 - 1e-3)  # Last time at which the entropy scaling is computed
-    # t_max = t_min + t_rs/5
+    t_max = t_min + collapse_time * (1 - 1e-2)  # Last time at which the entropy scaling is computed
+    # t_max = t_min + t_rs/10
 elif cosmology=="ds":
     t_ini = -1  # Time at which the initial conditions on the ground state are imposed.
     t_min = t_ini  # First time at which the entropy scaling is computed
@@ -87,7 +111,6 @@ else:
     t_min = t_ini  # First time at which the entropy scaling is computed
     t_max=1
     
-N_t = 4 # Number of time points to consider
 logspaced_times = False  # Use log-spaced time points
 
 #%% Spatial Settings
@@ -95,16 +118,21 @@ logspaced_times = False  # Use log-spaced time points
 """N is the size of the covariance matrix Σ^l. We can either fix N, to which corresponds
 a horizon size H0_c, or fix H0_c which in turn fixes N."""
 n_min = 0  # First considered shell is at n_min.
+def round_to_significant_digits(value, significant_digits):
+    if value == 0:
+        return 0
+    else:
+        return round(value, significant_digits - int(f"{value:.1e}".split('e')[1]) - 1)
 
-# H0_c = 20  # Comoving size of the horizon, it fixes the number of considered spherical shells
-# N = int(H0_c / cut_off)  # Number of considered spherical shells
-
-N = 15  # Number of considered spherical shells
-cut_off = 1e-2  # Value of the comoving cut off.
 if cosmology == "snyder":
-    H0_c = r_b  # Comoving size of the horizon, fixed by the initial radius of the star
+    cut_off=r_b/(n_min+N)
+    # cut_off=0.1
+    H0_c = cut_off * (n_min+N)  # Comoving size of the horizon, fixed by the initial radius of the star
 else:
-    H0_c = cut_off * N
+    # cut_off = 8.2e-23 # Value of the comoving cut off = l_planc in 1/MeV.
+    cut_off=0.01# in 1/MeV
+    cut_off=r_b/(n_min+N)
+    H0_c = cut_off * (n_min+N)
 
 """Since the computations are very demanding, we choose the sizes of the inside system that
 we want to trace out. This is useful, for example, if the system is known to satisfy an area law,
@@ -114,7 +142,6 @@ For example, if we set n_values = np.arange(n_min, n_max + 1) we have maximum in
 on the entropy scaling. This can be used to check if the system satisfies an area law.
 But we can diminish the number of n_values for sake of speed. For example, we may consider
 only half of the points, n_values = np.arange(n_min, n_max + 1, 2), or just two points n_values = [N // 4, N // 2]."""
-num_n_val=10
 n_values = n_min + np.asarray(sorted(set([
     int(i / num_n_val * N)
     for i in range(num_n_val+1)
@@ -130,11 +157,6 @@ n_values = n_min + np.asarray(sorted(set([
 skip_first_percent = 0
 skip_last_percent = 0
 
-l_max = 200  # l_max is the maximum l in the spherical harmonic expansion of the field.
-
-"""mu is the mass of the field."""
-# mu = 1 / m_pl_GeV  # In Planck masses
-mu = 0.01 # In Planck masses
 
 #%% Precision Parameters
 """Here you can set the precision parameters for the various integrations that the code performs."""
@@ -179,6 +201,10 @@ ermak_rtol = 1e-8
 # ermak_rtol = 1e-6
 # ermak_atol = 1e-6
 # ermak_rtol = 1e-4
+
+"""We have to set it to true or otherwise we get negetive values for the 
+frequency squared."""
+use_midpoint_scheme = False
 
 #%% Debug and Warnings
 """Displays warnings and debug information"""
@@ -244,6 +270,12 @@ n_max = n_min + N
 if n_max * cut_off > r_b:
     raise Exception(f"Cannot trace out degrees of freedom outside the collapsing sphere, "
                     f"n_max * cut_off = {n_max * cut_off} must be smaller than r_b = {r_b}")
+
+if r_b<r_s:
+    raise Exception(f"The boundary radius of the dust sphere r_b={r_b} must be smaller then the Schwarzschild radius r_s={r_s}")
+if r_b/cut_off<n_max:
+    raise Exception(f"r_b/cut_off={r_b/cut_off} must be greater then n_max={n_max} in order to have a well defined metric (no sign changes)")
+    
 if max(n_values)>N:
     raise Exception(f"Cannot trace out {max(n_values)} oscillators since there are a total of {N}.\n Modify n_values={n_values} accrodingly.")
 
@@ -259,7 +291,7 @@ The values of those parameters are also saved in a .txt file in the plot folder.
 important_parameters = ["cosmology","n_min", "N","n_values", "l_max", 
                         "cut_off", 
                         "mu",
-                        "t_min", "t_max", "N_t"
+                        "t_min", "t_max", "N_t",
                         ]
 
 if cosmology=="snyder":
@@ -280,9 +312,12 @@ display_parameter_names = {  # To display the parameters in the plots
     "N_t": r"$N_t$"
 }
 
-fixed_name_left=f"{save_plot_dir}/{cosmology}/mu={mu}/"#area_law_holds/
+fixed_name_left=f"{save_plot_dir}/{cosmology}/cut_off={round_to_significant_digits(cut_off,4)}/mu={mu}/area_law_holds/"#area_law_holds/
 fixed_name_right=f""
 os.makedirs(fixed_name_left, exist_ok=True)
+
+save_data = False  if plot_saved_data else save_plots  # True or False
+save_plots = False  if plot_saved_data else save_plots
 
 #%% Print Variables at the End
 if __name__ == "__main__":
@@ -343,6 +378,7 @@ if __name__ == "__main__":
     print("  Friedmann equation max step size =", friedmann_max_stepsize)
     print("  Ermakov equation atol (ermak_atol) =", ermak_atol)
     print("  Ermakov equation rtol (ermak_rtol) =", ermak_rtol)
+    print("  Use midpoint discretization scheme (use_midpoint_scheme) = ",use_midpoint_scheme)
 
     print("\nDebug and Warnings:")
     print("  Verbose level (verbose) =", verbose)

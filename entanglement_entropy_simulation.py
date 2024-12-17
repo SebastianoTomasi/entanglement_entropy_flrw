@@ -121,7 +121,9 @@ class EntanglementEntropySimulation:
     def load(self):
         """Load and fill the class attributes from saved data files."""
         try:
-            aux = io.load_data(f"{par.fixed_name_left}comoving_entanglement_entropy_scaling_t{par.fixed_name_right}")
+            load_path=f"{par.fixed_name_left}comoving_entanglement_entropy_scaling_t{par.fixed_name_right}"
+            print(f"loading: {load_path}")
+            aux = io.load_data(load_path)
             self.parameters = aux[0]
             data = aux[1]
             self.times = data[0]
