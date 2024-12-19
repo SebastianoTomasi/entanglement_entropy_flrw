@@ -6,7 +6,7 @@ Created on Wed Dec 13 10:11:06 2023
 """
 
 import numpy as np
-import sys, os
+import sys, os,warnings
 sys.path.append('C:/Users/sebas/Documents/GitHub/custom_libraries')
 import numerical_methods as nm
 import constants as const
@@ -18,9 +18,9 @@ be imported automatically."""
 plot_saved_data = False  # True or False
 
 """Output saving options."""
-save_data = False  # True or False
+save_plots = True  # True or False
 
-save_plots = save_data # True or False
+save_data = save_plots # True or False
 save_plot_dir = "./plots"
 
 #%% Physical Constants
@@ -46,10 +46,10 @@ hbar = 1
 
 # %%
 """Those are the most commons parameters that I usually change"""
-N_t = 15 # Number of time points to consider
-N = 15 # Number of considered spherical shells
-num_n_val=10
-l_max = 300 # l_max is the maximum l in the spherical harmonic expansion of the field.
+N_t =500  # Number of time points to consider
+N = 30 # Number of considered spherical shells
+num_n_val=30
+l_max = 400 # l_max is the maximum l in the spherical harmonic expansion of the field.
 mu = 0 # Field mass in MeV, electron has 0.5MeV
 
 #%% Cosmology Setup
@@ -69,6 +69,8 @@ hubble_constant = H0 * const.convert_hubble  # It is in Gy^-1. Carefull if you u
 
 """Used to compute the time at wich the adiabatic condition does not hold anymore: H(t)=max_h_for_adiabaticity"""
 max_h_for_adiabaticity=-1e-2
+
+
 
 #%%
 """Parameters of the collapsing star, used in the Snyder collapse model."""
@@ -118,20 +120,15 @@ logspaced_times = False  # Use log-spaced time points
 """N is the size of the covariance matrix Σ^l. We can either fix N, to which corresponds
 a horizon size H0_c, or fix H0_c which in turn fixes N."""
 n_min = 0  # First considered shell is at n_min.
-def round_to_significant_digits(value, significant_digits):
-    if value == 0:
-        return 0
-    else:
-        return round(value, significant_digits - int(f"{value:.1e}".split('e')[1]) - 1)
+
 
 if cosmology == "snyder":
     cut_off=r_b/(n_min+N)
-    # cut_off=0.1
+    # cut_off=1e-9
     H0_c = cut_off * (n_min+N)  # Comoving size of the horizon, fixed by the initial radius of the star
 else:
     # cut_off = 8.2e-23 # Value of the comoving cut off = l_planc in 1/MeV.
-    cut_off=0.01# in 1/MeV
-    cut_off=r_b/(n_min+N)
+    cut_off=H0_c/(n_min+N)
     H0_c = cut_off * (n_min+N)
 
 """Since the computations are very demanding, we choose the sizes of the inside system that
@@ -152,10 +149,19 @@ n_values = n_min + np.asarray(sorted(set([
 
 # n_values = n_min+np.arange(0, 20*N//23+1, 1)
 
-# Percentage of data excluded from the linear fit to avoid edge effects.
-# Use only if max(n_values) is close (15-10%) to n_max
-skip_first_percent = 0
-skip_last_percent = 0
+
+# %% CONSTRUCT DIRECTORY PATH
+def round_to_significant_digits(value, significant_digits):
+    if value == 0:
+        return 0
+    else:
+        return round(value, significant_digits - int(f"{value:.1e}".split('e')[1]) - 1)
+    
+fixed_name_left=f"{save_plot_dir}/{cosmology}/mu={mu}/cut_off={round_to_significant_digits(cut_off,4)}/"
+# fixed_name_left=f"{save_plot_dir}/{cosmology}/mu={mu}/area_law_holds/"
+
+fixed_name_right=f""
+os.makedirs(fixed_name_left, exist_ok=True)
 
 
 #%% Precision Parameters
@@ -204,7 +210,8 @@ ermak_rtol = 1e-8
 
 """We have to set it to true or otherwise we get negetive values for the 
 frequency squared."""
-use_midpoint_scheme = False
+use_midpoint_scheme = True
+
 
 #%% Debug and Warnings
 """Displays warnings and debug information"""
@@ -267,6 +274,12 @@ else:
 
 n_max = n_min + N
 
+#%% CHECKS AND WARNINGS
+
+if not use_midpoint_scheme:
+    warnings.warn("Midpoint scheme is not being used. This will lead to negative \Gamma^2 values, which are unphysical!")
+
+
 if n_max * cut_off > r_b:
     raise Exception(f"Cannot trace out degrees of freedom outside the collapsing sphere, "
                     f"n_max * cut_off = {n_max * cut_off} must be smaller than r_b = {r_b}")
@@ -285,10 +298,15 @@ if t_ini > t_min:
 # Insert t_ini in the times list, as the first entry
 times = np.insert(times, 0, t_ini)
 
+save_data = False  if plot_saved_data else save_plots  # True or False
+
+# %% IMPORTANT PARAMEERS
+
+
 """The important parameters are printed when the compute_entanglement_entropy function is called. 
 The values of those parameters are also saved in a .txt file in the plot folder."""
 
-important_parameters = ["cosmology","n_min", "N","n_values", "l_max", 
+important_parameters = ["cosmology","n_min", "N","num_n_val","n_values", "l_max", 
                         "cut_off", 
                         "mu",
                         "t_min", "t_max", "N_t",
@@ -300,24 +318,7 @@ elif cosmology=="ds":
     important_parameters.extend(["ds_hubble_constant"])
 else:
     important_parameters.extend(["omega_m0", "omega_r0", "omega_l0", "omega_k0"])
-
-
-display_parameter_names = {  # To display the parameters in the plots
-    "mu": r"$\mu$",
-    "r_sch": r"$r_{s}$",
-    "l_max": r"$l_{\mathrm{max}}$",
-    "cut_off": r"$b$",
-    "t_min": r"$t_{\mathrm{min}}$",
-    "t_max": r"$t_{\mathrm{max}}$",
-    "N_t": r"$N_t$"
-}
-
-fixed_name_left=f"{save_plot_dir}/{cosmology}/cut_off={round_to_significant_digits(cut_off,4)}/mu={mu}/area_law_holds/"#area_law_holds/
-fixed_name_right=f""
-os.makedirs(fixed_name_left, exist_ok=True)
-
-save_data = False  if plot_saved_data else save_plots  # True or False
-save_plots = False  if plot_saved_data else save_plots
+    
 
 #%% Print Variables at the End
 if __name__ == "__main__":
@@ -325,7 +326,7 @@ if __name__ == "__main__":
     print("  Load saved data (plot_saved_data) =", plot_saved_data)
     print("  Save data (save_data) =", save_data)
     print("  Save plots (save_plots) =", save_plots)
-    print("  Plots directory (save_plot_dir) =", save_plot_dir)
+    print("  Plots directory (fixed_name_left) =", fixed_name_left)
 
     print("\nPhysical Constants:")
     print("  Gravitational constant (G) =", G)
@@ -357,8 +358,6 @@ if __name__ == "__main__":
     print("  Cut-off (cut_off) =", cut_off)
     print("  Horizon size (H0_c) =", H0_c)
     print("  Traced shell indices (n_values) =", n_values)
-    print("  Skip first percent (skip_first_percent) =", skip_first_percent)
-    print("  Skip last percent (skip_last_percent) =", skip_last_percent)
     print("  Maximum l in spherical harmonic expansion (l_max) =", l_max)
     print("  Field mass (mu) =", mu)
 

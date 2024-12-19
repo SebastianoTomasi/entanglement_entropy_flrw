@@ -12,28 +12,32 @@ import numpy as np
 #%%
 """Here we define the entries of the time independent part of the coupling matrix"""
 # %% ZERO SPATIAL CURVATURE 
-is_flrw=True if par.cosmology in ["eds","ds","lcdm","rad","flat"] else False
+is_flat_flrw = True if par.cosmology in ["eds","ds","lcdm","rad","flat"] else False
     
-if par.use_midpoint_scheme and is_flrw:
+if par.use_midpoint_scheme and is_flat_flrw:
     def diagonal_elements(l):
         res=[]
         start,stop=par.n_min+1,par.n_max+1
+        kb2=0
         for j in range(start,stop):
+            
             """Can impose different boundary conditions using the conditionals 
             at j==1 and j==par.n_max"""
             if j==1:
-                res.append( 9/4 + l*(l+1) )
+                res.append(9/4*np.sqrt((1-9/4*kb2)*(1-kb2))+l*(l+1))
             elif j==par.n_max:
-                res.append((1-2*j)**2/(4*j**2))
+                res.append((j - 0.5)**2/ j**2 * np.sqrt(1 - kb2 * (j - 0.5)**2) * np.sqrt(1 - kb2 * j**2) )
             else:
-                res.append(2  + (0.5+l*(l+1))/j**2 )
+                res.append((((1 - kb2 * j**2)**0.5) / (j**2)) * (((j + 0.5)**2) * ((1 - kb2 * (j + 0.5)**2)**0.5) + ((j - 0.5)**2) * ((1 - kb2 * (j - 0.5)**2)**0.5)) + (l * (l + 1) / (j**2)))
         return res
     
     def top_diagonal_elements():
+        kb2=0
         j=np.arange(par.n_min+2,par.n_max+1)
-        return -(1+2*j)**2/(4*j*(1+j))
+        return -((j + 0.5)**2 / (j * (j + 1))) * (((1 -kb2 * (j + 0.5)**2) * ((1 -kb2 * j**2) * (1 -kb2 * (j + 1)**2))**0.5)**0.5)
+
     
-elif not par.use_midpoint_scheme and is_flrw:
+elif not par.use_midpoint_scheme and is_flat_flrw:
     def diagonal_elements(l):
         res=[]
         start,stop=par.n_min+1,par.n_max+1
@@ -79,8 +83,8 @@ elif not par.use_midpoint_scheme and par.cosmology=="snyder":
         return -(j / (j + 1)) * (1 - kb2 * j**2)**(3/4) * (1 - kb2 * (j + 1)**2)**(1/4)
     
 # %% NONZERO SPATIAL CURVATURE with midpoint approx
+
 elif par.use_midpoint_scheme and par.cosmology=="snyder":
-    print("HEREE")
     def diagonal_elements(l):
         res=[]
         start,stop=par.n_min+1,par.n_max+1
@@ -90,21 +94,17 @@ elif par.use_midpoint_scheme and par.cosmology=="snyder":
             """Can impose different boundary conditions using the conditionals 
             at j==1 and j==par.n_max"""
             if j==1:
-                res.append(9/8*np.sqrt((4-9*kb2)*(1-kb2))+l*(l+1))
+                res.append(9/4*np.sqrt((1-9/4*kb2)*(1-kb2))+l*(l+1))
             elif j==par.n_max:
-                res.append(((j - 0.5)**2 * np.sqrt(1 - kb2 * (j - 0.5)**2) * np.sqrt(1 - kb2 * j**2)) / j**2)
+                res.append((j - 0.5)**2/ j**2 * np.sqrt(1 - kb2 * (j - 0.5)**2) * np.sqrt(1 - kb2 * j**2) )
             else:
-                res.append((1 / j**2) * np.sqrt(1 - kb2 * j**2) * (
-                            (0.5 - j)**2 * np.sqrt(1 - kb2 * (-0.5 + j)**2) +
-                            (0.5 + j)**2 * np.sqrt(1 - kb2 * (+0.5 + j)**2) 
-                            ) + (l * (l + 1)) / j**2
-                            )
+                res.append((((1 - kb2 * j**2)**0.5) / (j**2)) * (((j + 0.5)**2) * ((1 - kb2 * (j + 0.5)**2)**0.5) + ((j - 0.5)**2) * ((1 - kb2 * (j - 0.5)**2)**0.5)) + (l * (l + 1) / (j**2)))
         return res
     
     def top_diagonal_elements():
         kb2=par.k*par.cut_off**2
         j=np.arange(par.n_min+2,par.n_max+1)
-        return -(((0.5 + j)**2 * (1 - kb2 * j**2)**0.25 * (1 - kb2 * (1 + j)**2)**0.25 * np.sqrt(1 - kb2 * (0.5 + j)**2)) / (j * (1 + j)))
+        return -((j + 0.5)**2 / (j * (j + 1))) * (((1 -kb2 * (j + 0.5)**2) * ((1 -kb2 * j**2) * (1 -kb2 * (j + 1)**2))**0.5)**0.5)
 
 else:
     raise Exception(f"No coupling matrix defined for cosmology={par.cosmology}")

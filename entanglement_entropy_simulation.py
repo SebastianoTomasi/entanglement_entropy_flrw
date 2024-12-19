@@ -88,7 +88,7 @@ class EntanglementEntropySimulation:
         else:
             raise ValueError("cee.run() did not return the expected number of outputs.")
 
-    def perform_linear_fit(self, suppress_report=True):
+    def perform_linear_fit(self, suppress_report=True,skip_first_percent=0,skip_last_percent=0):
         """
         Perform a linear fit on the simulated entanglement entropy data if available.
 
@@ -100,13 +100,20 @@ class EntanglementEntropySimulation:
         if self.comoving_entanglement_entropy_scaling_t is None:
             print("Simulation has not been run yet. Please run the simulation before fitting.")
             return
-
+        
+        self.comoving_best_fits = []
+        self.comoving_fitted_slices = []
+        self.comoving_angular_coefficients = []
+        self.comoving_angular_coefficients_errors = []
+        self.comoving_intercepts = []
+        self.comoving_intercepts_errors = []
+        
         for entanglement_entropy_A in self.comoving_entanglement_entropy_scaling_t:
             # Perform a linear fit on the entropy data and store the results.
             (best_fit, fitted_slice, optimal_parameters, errors) = nm.fit_line(
                 entanglement_entropy_A,
-                par.skip_first_percent,
-                par.skip_last_percent,
+                skip_first_percent,
+                skip_last_percent,
                 suppress_report=suppress_report)
 
             self.comoving_best_fits.append(best_fit)
@@ -131,8 +138,8 @@ class EntanglementEntropySimulation:
             self.rho_for_plot_t = data[2]
             self.sigma_l_t_for_plot = data[3]
         except Exception as e:
-            print(f"Error loading simulation data: {e}")
-            return
+            print(f"\nError loading simulation data: {e}\n")
+            return 
     
         try:
             aux = io.load_data(f"{par.fixed_name_left}comoving_entanglement_entropy_scaling_t_fit_params{par.fixed_name_right}")
