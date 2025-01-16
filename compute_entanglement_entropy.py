@@ -61,9 +61,15 @@ def ermakov_like_equation_vectorized(t, y, gamma_l2):
     
     omega_lj2 = (c / a)**2 * (gamma_l2 + muab2)
     
+    
+    if par.use_cutoff==True:
+        b=par.cut_off
+    else:
+        b=1
+    
     dy_dt = np.zeros(2*N)
     dy_dt[0:N] = drho
-    dy_dt[N:2*N] = -3 * H * drho - omega_lj2 * rho + c**4 / (a**6 * rho**3)
+    dy_dt[N:2*N] = -3 * H * drho - omega_lj2/b**2 * rho + c**4 / (a**6 * rho**3*b**2)
     return dy_dt
 
 def solve_ermakov_like_vectorized(t_min, t_max, rho_t_min, drho_t_min, gamma_l2, full_solution=True):
