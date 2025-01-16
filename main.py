@@ -123,6 +123,8 @@ pl.plot(rescaled_shell_data,
         # dotted=True,connected_dots=True,
         save=par.save_plots, name= save_with_name)
     
+print(f"Tolerance: {np.max(simulation.max_errors)}")
+    
 
 if do_linear_fit:
     """Plot the fitted angular coefficients and their % errors."""
@@ -171,8 +173,12 @@ if do_linear_fit:
             xlabel="$t$ ",
             ylabel="Physical Slope",
             yscale="log",
-            x_ticks=[0,par.t_rs,par.collapse_time],
-            x_ticklabels=[str(label) for label in list(np.round(np.array([0,par.t_rs,par.collapse_time]),3))],
+            x_ticks=[par.t_min,par.t_rs,par.collapse_time],
+            x_ticklabels = [
+                            r"$t_{\text{min}}$",
+                            r"$t_{\text{r}_\text{s}}$" ,
+                            r"$t_{\text{c}}$"
+                            ],
             legend=[None],
             # dotted=True,connected_dots=True,
             save=par.save_plots,name=save_with_name)
@@ -276,10 +282,10 @@ if snyder:
         def auxxer(x):
             return asymptote_val
         
-        
+        skiplast=1
         save_with_name=f"{par.fixed_name_left}physical_ee_slopes_T{par.fixed_name_right}"
         pl.plot([
-            [tbars,simulation.comoving_angular_coefficients[:how_many_schw_times]*cosm.scale_factor_t(times[1:how_many_schw_times+1])**(-2)],
+            [tbars[:-skiplast],simulation.comoving_angular_coefficients[:how_many_schw_times-skiplast]*cosm.scale_factor_t(times[1:how_many_schw_times+1-skiplast])**(-2)],
                  # [asymptote_x,asymptote_y]
                  ],
                 # title="Physical entanglement entropy slope at various Schwarzschild times.",

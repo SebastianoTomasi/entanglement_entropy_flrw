@@ -215,12 +215,16 @@ def compute_cosmology_functions():
     
         # Plotting scale factor a(t)
         if __name__ == "__main__" or par.debug_level >= 2:
+            save_with_name=f"{par.fixed_name_left}scale_factor_{par.fixed_name_right}"
             pl.plot([[t_values, a_values],
-                [t_analytical, a_analytical]],
-                title=r"Scale Factor $a(t)$",
+                # [t_analytical, a_analytical]
+                ],
+                title=None,
                 xlabel=r"$t$",
                 ylabel=r"$a(t)$",
-                legend=["Numerical", "Analytical"]
+                # legend=["Numerical", "Analytical"],
+                legend=[None],
+                save=par.save_plots,name=save_with_name
             )
     
         # Compute comoving horizon

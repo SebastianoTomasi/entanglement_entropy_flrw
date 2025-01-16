@@ -15,7 +15,7 @@ import constants as const
 """If true, it loads the saved data for the entanglement entropy and displays them.
 To select which data to load, set the mass (mu) and the cosmology. The other parameters will 
 be imported automatically."""
-plot_saved_data = False  # True or False
+plot_saved_data = True  # True or False
 
 """Output saving options."""
 save_plots = True  # True or False
@@ -46,10 +46,10 @@ hbar = 1
 
 # %%
 """Those are the most commons parameters that I usually change"""
-N_t =500  # Number of time points to consider
+N_t =200  # Number of time points to consider
 N = 30 # Number of considered spherical shells
 num_n_val=30
-l_max = 400 # l_max is the maximum l in the spherical harmonic expansion of the field.
+l_max = 500 # l_max is the maximum l in the spherical harmonic expansion of the field.
 mu = 0 # Field mass in MeV, electron has 0.5MeV
 
 #%% Cosmology Setup

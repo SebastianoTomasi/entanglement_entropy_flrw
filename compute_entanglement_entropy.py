@@ -184,7 +184,18 @@ def collect_plot_data(l, gamma_l2, sigma_l_t_for_plot, sigma_l_t_for_plot_legend
             sigma_l_t_for_plot_legend.append(f"l={l}, j={j}")
 
 def run():
-    """Main function to compute entanglement entropy scaling over time."""
+    """Main function to compute entanglement entropy scaling over time and display progress."""
+    import time
+    total_steps = len(par.times) - 1  # since we start from i=1
+    if total_steps <= 0:
+        print("No time steps to run.")
+        return None
+    
+    # For progress bar and timing
+    iteration_times = []
+    
+    max_errors = []
+
     len_n_values = len(par.n_values)
     comoving_entanglement_entropy_scaling_t = []
 
@@ -207,17 +218,40 @@ def run():
     sigma_l_t_for_plot = []
     sigma_l_t_for_plot_legend = []
     
+    # Function to print progress bar and ETA
+    def print_progress(iteration, total, elapsed_times):
+        bar_length = 18
+        progress = iteration / total
+        filled_length = int(bar_length * progress)
+        bar = '=' * filled_length + ' ' * (bar_length - filled_length)
+        
+        if elapsed_times: 
+            avg_time = sum(elapsed_times) / len(elapsed_times)
+            remaining = (total - iteration) * avg_time
+            eta_str = f"ETA: {int(remaining // 60)}m {int(remaining % 60)}s"
+        else:
+            eta_str = "ETA: calculating..."
+        
+        # Print at the same line
+        sys.stdout.write(f"\rProgress: [{bar}] {progress*100:.2f}% {eta_str}")
+        sys.stdout.flush()
+
+    # Initial print
+    print_progress(0, total_steps, [])
+    
+
     for i in range(1, len(par.times)):  # Starts from one because of the definition of times.
+        iteration_start = time.time()
         t = par.times[i]
         entropy_nl = np.zeros(len_n_values)
         entropy_n = np.zeros(len_n_values)
-        max_errors = []
+        
         
         for l in range(0, par.l_max + 1):  # Cycle on the angular momentum index
-            if par.debug_level >= 1:
+            if par.debug_level >= 5:
                 if l % 100 == 0:
                     if l == 0:
-                        print(f"l = {l}, t = {t}")
+                        print(f"\nl = {l}, t = {t}")
                     else:
                         print(f"l = {l}")
             
@@ -280,17 +314,28 @@ def run():
                 nonzero_entropy_nl = entropy_nl[nonzero_values]
                 nonzero_entropy_n = entropy_n[nonzero_values]
                 # max_error defined as |S(l_max)-S(l_max-1)|/(S(l_max)+S(l_max-1))/2
-                max_error = np.max(1 / (0.5 + nonzero_entropy_n / ((2 * l + 1) * nonzero_entropy_nl)))
-                max_errors.append(max_error)
-                if par.debug_level >= 4:
-                    print("Maximum relative deviation = {:.4e}".format(max_error))
-                print("")
-                
+                if len(nonzero_entropy_nl) > 0:
+                    max_error = np.max(1 / (0.5 + nonzero_entropy_n / ((2 * l + 1) * nonzero_entropy_nl)))
+                    max_errors.append(max_error)
+                    if par.debug_level >= 5:
+                        print("Maximum relative deviation = {:.4e}".format(max_error))
+                    print("")
+            
             entropy_n = entropy_n + (2 * l + 1) * entropy_nl
 
         comoving_number_area = 4 * np.pi * np.array(par.n_values)**2  # Removed the cut_off
         comoving_entanglement_entropy_scaling_t.append([comoving_number_area, entropy_n])
 
+        # Timing and progress bar update
+        iteration_end = time.time()
+        iteration_time = iteration_end - iteration_start
+        iteration_times.append(iteration_time)
+
+        # Update progress bar and ETA after each iteration
+        print_progress(i, total_steps, iteration_times)
+
+    # Print newline at the end of progress
+    print("\nComputation completed!")
     return (comoving_entanglement_entropy_scaling_t, max_errors, (sigma_l_t_for_plot, sigma_l_t_for_plot_legend))
 
 

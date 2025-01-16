@@ -1,0 +1,18 @@
+Simulation Settings:
+cosmology = snyder
+n_min = 0.000e+00
+N = 3.000e+01
+num_n_val = 3.000e+01
+n_values = [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
+ 24 25]
+l_max = 5.000e+02
+cut_off = 6.667e-02
+mu = 1.000e+02
+t_min = 0.000e+00
+t_max = 4.398e+00
+N_t = 2.000e+02
+k = 1.250e-01
+r_b = 2.000e+00
+r_s = 1.000e+00
+t_rs = 3.636e+00
+collapse_time = 4.443e+00
