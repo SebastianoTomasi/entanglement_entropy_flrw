@@ -2,14 +2,14 @@
 
 ## Overview
 
-This project simulates the scaling of entanglement entropy in cosmological and gravitational settings. The code is designed to compute entanglement entropy, analyze its behavior over time, and fit the results to extract key parameters. The main focus lies in simulating scenarios such as the Snyder collapse and other cosmological models.
+This project simulates the scaling of entanglement entropy in cosmological and gravitational time dependent settings. The code is designed to compute entanglement entropy, analyze its behavior over time, and line fit the results to extract the slope. The main focus lies in simulating a scalar field propagating in the Oppheneimer-Snyder collapse metric, but other cosmological models are implemented.
 
 ## Features
-- **Cosmological Modeling:** Supports various cosmologies, including EdS, LCDM, and Snyder collapse.
-- **Entanglement Entropy Calculation:** Computes the entanglement entropy using time-evolved harmonic oscillator models.
+- **Cosmological Modeling:** Supports various cosmologies, including EdS, LCDM, and Oppheneimer-Snyder collapse.
+- **Entanglement Entropy Calculation:** Computes the entanglement entropy of the discretized scalar field.
 - **Custom Integrators:** Leverages custom numerical integration methods for high precision.
 - **Visualization:** Plots results like entropy scaling, slopes, and other derived parameters.
-- **Configurable Parameters:** Offers customizable settings for precision, cosmology, and system size.
+- **Configurable Parameters:** Offers customizable settings for precision, background metric, and system size.
 
 ## File Descriptions
 
@@ -21,8 +21,8 @@ This project simulates the scaling of entanglement entropy in cosmological and g
 ### Supporting Modules
 - **`cosmology.py`**: Implements functions for various cosmological models, including scaling factors, Hubble function, and horizon calculations.
 - **`cosmological_functions.py`**: Defines cosmological evolution functions like matter density, radiation density, and dark energy density evolution.
-- **`coupling_matrix.py`**: Handles the generation and manipulation of coupling matrices for spherical harmonic expansions.
-- **`simulation_parameters.py`**: Centralized configuration file defining physical constants, cosmology settings, and precision parameters.
+- **`coupling_matrix.py`**: Handles the generation and manipulation of coupling matrices.
+- **`simulation_parameters.py`**: Centralized configuration file defining physical constants, background metric settings, and precision parameters.
 
 ### Additional Files
 Ensure the following custom libraries are available and correctly configured in your system:
@@ -34,6 +34,7 @@ Ensure the following custom libraries are available and correctly configured in 
    ```bash
    git clone <repository-url>
    ```
+   or manually download it.
 2. Ensure Python 3.8+ is installed along with required dependencies:
    ```bash
    pip install numpy scipy matplotlib
@@ -56,13 +57,13 @@ Ensure the following custom libraries are available and correctly configured in 
 
 ## Key Configurations
 - **Cosmology Selection:** Set `cosmology` in `simulation_parameters.py` to choose the desired cosmology (e.g., `snyder`, `lcdm`, `eds`).
+- **Quantum System:** Choose the scalar field mass `mu`, the system size `N`,  the number of time points `N_t` etc... 
 - **Precision:** Adjust integration tolerances (`ermak_atol`, `ermak_rtol`) for the Ermakov-like equation and other computations.
 - **Output Options:** Control saving and loading behavior using `save_plots`, `plot_saved_data`, and related flags in `simulation_parameters.py`.
 
 ## Example Outputs
 - **Entanglement Entropy Scaling:** Plots the entropy scaling as a function of dimensionless area.
 - **Slopes:** Shows best-fit slopes and their errors over time.
-- **Schwarzschild Time Transformations:** For the Snyder collapse, provides entropy data in Schwarzschild time.
 
 ## Dependencies
 - Python 3.8+
