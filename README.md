@@ -58,7 +58,7 @@ Ensure the following custom libraries are available and correctly configured in 
 ## Key Configurations
 - **Cosmology Selection:** Set `cosmology` in `simulation_parameters.py` to choose the desired cosmology (e.g., `snyder`, `lcdm`, `eds`).
 - **Quantum System:** Choose the scalar field mass `mu`, the system size `N`,  the number of time points `N_t` etc... 
-- **Precision:** Adjust integration tolerances (`ermak_atol`, `ermak_rtol`) for the Ermakov-like equation and other computations.
+- **Precision:** Adjust tolerances, one of most important is `l_max` which sets the convergence tolerance of the sum.
 - **Output Options:** Control saving and loading behavior using `save_plots`, `plot_saved_data`, and related flags in `simulation_parameters.py`.
 
 ## Example Outputs
